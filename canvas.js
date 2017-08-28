@@ -1,25 +1,34 @@
 var canvas = document.querySelector('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 var c = canvas.getContext('2d');
 
-var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-var tile = new Tile(30, 30);
+function init() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.addEventListener("click", mouseClicked, false);
 
-// Binding the click event on the canvas.
-canvas.addEventListener('click', function(evt) {
-    var mousePos = getMousePos(evt);
+    var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
+    tile = new Tile(25, 30);
+}
 
-    /*
-    if (isInside(mousePos,rect)) {
-        alert('clicked inside rect');
-    } else {
-        alert('clicked outside rect');
+function mouseClicked(e) {
+    let m = getMouse(e);
+
+    //console.log("Got click at: ", m.x, m.y);
+    if (tile.contains(m.x, m.y)) {
+        console.log("Clicked the tile!");
     }
-    */
-}, false);
+}
 
+function getMouse(e) {
+    let rect = e.target.getBoundingClientRect();
+    let pos = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+    return {x: parseInt(pos.x), y: parseInt(pos.y)};
+}
+
+/*
 // Function to get the current mouse position.
 function getMousePos( event) {
     var rect = canvas.getBoundingClientRect();
@@ -28,35 +37,43 @@ function getMousePos( event) {
         y: event.clientY - rect.top
     };
 }
-// Function to check whether a point is inside a rectangle.
-function isInside(pos, rect){
-    return pos.x > rect.x && pos.x < rect.x+rect.width && pos.y < rect.y+rect.height && pos.y > rect.y
-}
+*/
 
-// Empty box, with no text.
-function EmptyBox(x, y, width, height) {
-    var border = 1;
-    c.fillStyle = "black";
-    c.fillRect(x, y, width, height);
-    c.fillStyle = "white";
-    c.fillRect(x + border, y + border, width - 2 * border, height - 2 * border);
-}
-
-// A box with the specified text in the center.
+// A rectangular box with the specified text in the center.
 function BoxWithText(x, y, width, height, text, fontSize) {
-    EmptyBox(x, y, width, height);
+    this.border = 1;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.text = text;
+
+    this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "20px Arial";
+
+    this.draw();
+}
+
+BoxWithText.prototype.draw = function () {
     c.fillStyle = "black";
+    c.fillRect(this.x, this.y, this.width, this.height);
 
-    var font = (fontSize !== undefined) ? fontSize + "px Arial" : "20px Arial";
-    c.font = font;
+    c.fillStyle = "white";
+    c.fillRect(this.x + this.border, this.y + this.border, this.width - 2 * this.border, this.height - 2 * this.border);
 
+    c.fillStyle = "black";
+    c.font = this.font;
     c.textAlign ="center";
     c.textBaseline = "middle";
+    c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+};
 
-    var textWidth = c.measureText(text).width;
-    c.fillText(text, x + (width / 2), y + (height / 2));
+// Function to check whether a given set of coordinates is inside the box.
+BoxWithText.prototype.contains = function (x, y) {
+    return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
 }
 
 function Tile(x, y) {
-    BoxWithText(x, y, 20, 20, "0", 10);
+    return new BoxWithText(x, y, 20, 20, "0", 10);
 }
+
+init();
