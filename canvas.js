@@ -1,21 +1,24 @@
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 
+var tesselations = [];
+
 function init() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-    tile = new Tile(25, 30);
+    tesselations.push(new Tessellation(100, 300, 3, "vertical"));
 }
 
 function mouseClicked(e) {
     let m = getMouse(e);
 
-    //console.log("Got click at: ", m.x, m.y);
-    if (tile.contains(m.x, m.y)) {
-        console.log("Clicked the tile!");
+    for (var i = 0, len = tesselations.length; i < len; i++) {
+        var tile = tesselations[i].getTileForPoint(m.x, m.y);
+        if(tile == -1) return;
+        else console.log("Tile " + tile + " of some tesselation clicked!");
     }
 }
 
@@ -28,20 +31,8 @@ function getMouse(e) {
     return {x: parseInt(pos.x), y: parseInt(pos.y)};
 }
 
-/*
-// Function to get the current mouse position.
-function getMousePos( event) {
-    var rect = canvas.getBoundingClientRect();
-    return {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
-    };
-}
-*/
-
 // A rectangular box with the specified text in the center.
 function BoxWithText(x, y, width, height, text, fontSize) {
-    this.border = 1;
     this.x = x;
     this.y = y;
     this.width = width;
@@ -53,12 +44,15 @@ function BoxWithText(x, y, width, height, text, fontSize) {
     this.draw();
 }
 
+BoxWithText.prototype.BORDER = 1;
+
 BoxWithText.prototype.draw = function () {
     c.fillStyle = "black";
     c.fillRect(this.x, this.y, this.width, this.height);
 
     c.fillStyle = "white";
-    c.fillRect(this.x + this.border, this.y + this.border, this.width - 2 * this.border, this.height - 2 * this.border);
+    var border = BoxWithText.prototype.BORDER;
+    c.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
 
     c.fillStyle = "black";
     c.font = this.font;
@@ -73,7 +67,29 @@ BoxWithText.prototype.contains = function (x, y) {
 }
 
 function Tile(x, y) {
-    return new BoxWithText(x, y, 20, 20, "0", 10);
+    return new BoxWithText(x, y, Tile.prototype.WIDTH, Tile.prototype.HEIGHT, "0", 10);
+}
+
+Tile.prototype.WIDTH = 20;
+Tile.prototype.HEIGHT = 20;
+
+function Tessellation(x, y, n, orient) {
+    this.tiles = [];
+
+    var xOffset = orient == "horizontal" ? Tile.prototype.WIDTH - BoxWithText.prototype.BORDER: 0;
+    var yOffset = orient == "vertical" ? Tile.prototype.HEIGHT - BoxWithText.prototype.BORDER: 0;
+
+    for(var i = 0; i < n; i++) {
+        this.tiles.push(new Tile(x + xOffset * (i + 1), y + yOffset * (i + 1)));
+    }
+}
+
+Tessellation.prototype.getTileForPoint = function (x, y) {
+    for (var i = 0, len = this.tiles.length; i < len; i++) {
+        var tile = this.tiles[i];
+        if(tile.contains(x, y)) return i;
+    }
+    return -1;
 }
 
 init();
