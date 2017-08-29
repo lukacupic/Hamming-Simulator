@@ -3,14 +3,34 @@ var c = canvas.getContext('2d');
 
 var tesselations = [];
 
+/**
+ * Holds all graphical objects which are to be drawn onto the canvas.
+ * Every object must have a "draw" method which will be called upon
+ * drawing.
+ */
+var objects = [];
+
+// General
+
 function init() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-    tesselations.push(new Tessellation(100, 300, 3, "vertical"));
+    var testTes = new Tessellation("test", 100, 300, 4, "vertical");
+
+    redraw();
 }
+
+function redraw() {
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0, len = objects.length; i < len; i++) {
+        objects[i].draw();
+    }
+}
+
+// Mouse
 
 function mouseClicked(e) {
     let m = getMouse(e);
@@ -18,7 +38,7 @@ function mouseClicked(e) {
     for (var i = 0, len = tesselations.length; i < len; i++) {
         var tile = tesselations[i].getTileForPoint(m.x, m.y);
         if(tile == -1) return;
-        else console.log("Tile " + tile + " of some tesselation clicked!");
+        else console.log("Tile " + tile + " of " + tesselations[i].name + " clicked!");
     }
 }
 
@@ -31,8 +51,12 @@ function getMouse(e) {
     return {x: parseInt(pos.x), y: parseInt(pos.y)};
 }
 
+// BoxWithText
+
 // A rectangular box with the specified text in the center.
 function BoxWithText(x, y, width, height, text, fontSize) {
+    objects.push(this);
+
     this.x = x;
     this.y = y;
     this.width = width;
@@ -40,8 +64,6 @@ function BoxWithText(x, y, width, height, text, fontSize) {
     this.text = text;
 
     this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "20px Arial";
-
-    this.draw();
 }
 
 BoxWithText.prototype.BORDER = 1;
@@ -54,8 +76,8 @@ BoxWithText.prototype.draw = function () {
     var border = BoxWithText.prototype.BORDER;
     c.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
 
-    c.fillStyle = "black";
     c.font = this.font;
+    c.fillStyle = "black";
     c.textAlign ="center";
     c.textBaseline = "middle";
     c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
@@ -66,6 +88,8 @@ BoxWithText.prototype.contains = function (x, y) {
     return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
 }
 
+// Tile
+
 function Tile(x, y) {
     return new BoxWithText(x, y, Tile.prototype.WIDTH, Tile.prototype.HEIGHT, "0", 10);
 }
@@ -73,7 +97,12 @@ function Tile(x, y) {
 Tile.prototype.WIDTH = 20;
 Tile.prototype.HEIGHT = 20;
 
-function Tessellation(x, y, n, orient) {
+// Tesselation
+
+function Tessellation(name, x, y, n, orient) {
+    tesselations.push(this);
+
+    this.name = name;
     this.tiles = [];
 
     var xOffset = orient == "horizontal" ? Tile.prototype.WIDTH - BoxWithText.prototype.BORDER: 0;
