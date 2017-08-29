@@ -1,12 +1,12 @@
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 
-var tesselations = [];
+var tileBoxes = [];
 
 /**
- * Holds all graphical objects which are to be drawn onto the canvas.
- * Every object must have a "draw" method which will be called upon
- * drawing.
+ * Holds all graphical objects which are to be n onto the canvas.
+ * Every object must have a "" method which will be called upon
+ * ing.
  */
 var objects = [];
 
@@ -18,7 +18,7 @@ function init() {
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-    var testTes = new Tessellation("test", 100, 300, 4, "vertical");
+    var testTes = new TileBox("test", 100, 300, 4, "vertical");
 
     redraw();
 }
@@ -35,10 +35,10 @@ function redraw() {
 function mouseClicked(e) {
     let m = getMouse(e);
 
-    for (var i = 0, len = tesselations.length; i < len; i++) {
-        var tile = tesselations[i].getTileForPoint(m.x, m.y);
+    for (var i = 0, len = tileBoxes.length; i < len; i++) {
+        var tile = tileBoxes[i].getTileForPoint(m.x, m.y);
         if(tile == -1) return;
-        else console.log("Tile " + tile + " of " + tesselations[i].name + " clicked!");
+        else console.log("Tile " + tile + " of " + tileBoxes[i].name + " clicked!");
     }
 }
 
@@ -99,8 +99,8 @@ Tile.prototype.HEIGHT = 20;
 
 // Tesselation
 
-function Tessellation(name, x, y, n, orient) {
-    tesselations.push(this);
+function TileBox(name, x, y, n, orient) {
+    tileBoxes.push(this);
 
     this.name = name;
     this.tiles = [];
@@ -113,7 +113,7 @@ function Tessellation(name, x, y, n, orient) {
     }
 }
 
-Tessellation.prototype.getTileForPoint = function (x, y) {
+TileBox.prototype.getTileForPoint = function (x, y) {
     for (var i = 0, len = this.tiles.length; i < len; i++) {
         var tile = this.tiles[i];
         if(tile.contains(x, y)) return i;
