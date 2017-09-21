@@ -1,12 +1,12 @@
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 
-var tileBoxes = [];
+var tileBoxes = []; // This should eventually become a map
 
 /**
- * Holds all graphical objects which are to be n onto the canvas.
- * Every object must have a "" method which will be called upon
- * ing.
+ * Holds all graphical objects which are to be drawn onto the canvas.
+ * Every object must have a draw() method which will be called upon
+ * drawing.
  */
 var objects = [];
 
@@ -18,7 +18,9 @@ function init() {
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-    var testTes = new TileBox("test", 100, 300, 4, "vertical");
+    var tileBox = new TileBox("test", 100, 300, 4, "vertical");
+
+    var tileBox2 = new TileBox("test2", 120, 500, 6, "horizontal");
 
     redraw();
 }
@@ -37,7 +39,7 @@ function mouseClicked(e) {
 
     for (var i = 0, len = tileBoxes.length; i < len; i++) {
         var tile = tileBoxes[i].getTileForPoint(m.x, m.y);
-        if(tile == -1) return;
+        if(tile == -1) continue;
         else console.log("Tile " + tile + " of " + tileBoxes[i].name + " clicked!");
     }
 }
