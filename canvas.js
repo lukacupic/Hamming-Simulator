@@ -18,9 +18,8 @@ function init() {
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-    var tileBox = new TileBox("test", 100, 300, 4, "vertical");
 
-    var tileBox2 = new TileBox("test2", 120, 500, 6, "horizontal");
+    var hammingCoder = new BoxWithText(50, 135, 200, 50, "Hammingov dekoder");
 
     redraw();
 }
@@ -32,16 +31,17 @@ function redraw() {
     }
 }
 
-// Mouse
+// Mouse functions
 
 function mouseClicked(e) {
     let m = getMouse(e);
 
     for (var i = 0, len = tileBoxes.length; i < len; i++) {
-        var tile = tileBoxes[i].getTileForPoint(m.x, m.y);
+        var tile = tileBoxes[i].getTileIndexForPoint(m.x, m.y);
         if(tile == -1) continue;
-        else console.log("Tile " + tile + " of " + tileBoxes[i].name + " clicked!");
+        else tileBoxes[i].tiles[tile].invert();
     }
+    redraw();
 }
 
 function getMouse(e) {
@@ -65,7 +65,7 @@ function BoxWithText(x, y, width, height, text, fontSize) {
     this.height = height;
     this.text = text;
 
-    this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "20px Arial";
+    this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "18px Arial";
 }
 
 BoxWithText.prototype.BORDER = 1;
@@ -76,7 +76,7 @@ BoxWithText.prototype.draw = function () {
 
     c.fillStyle = "white";
     var border = BoxWithText.prototype.BORDER;
-    c.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
+    c.fillRect(this.x + border, this.y + border, this.width - 2  * border, this.height - 2 * border);
 
     c.font = this.font;
     c.fillStyle = "black";
@@ -93,13 +93,18 @@ BoxWithText.prototype.contains = function (x, y) {
 // Tile
 
 function Tile(x, y) {
-    return new BoxWithText(x, y, Tile.prototype.WIDTH, Tile.prototype.HEIGHT, "0", 10);
+    this.value = "0";
+    return new BoxWithText(x, y, Tile.prototype.WIDTH, Tile.prototype.HEIGHT, this.value, 10);
 }
 
 Tile.prototype.WIDTH = 20;
 Tile.prototype.HEIGHT = 20;
 
-// Tesselation
+Tile.prototype.invert = function () {
+    this.text = this.text == "0" ? "1" : "0";
+}
+
+// TileBox
 
 function TileBox(name, x, y, n, orient) {
     tileBoxes.push(this);
@@ -115,7 +120,7 @@ function TileBox(name, x, y, n, orient) {
     }
 }
 
-TileBox.prototype.getTileForPoint = function (x, y) {
+TileBox.prototype.getTileIndexForPoint = function (x, y) {
     for (var i = 0, len = this.tiles.length; i < len; i++) {
         var tile = this.tiles[i];
         if(tile.contains(x, y)) return i;
