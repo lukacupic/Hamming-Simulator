@@ -32,7 +32,7 @@ function redraw() {
     }
 }
 
-// Mouse functions
+// ----------------------------------- Mouse -----------------------------------
 
 function mouseClicked(e) {
     let m = getMouse(e);
@@ -102,20 +102,20 @@ TextBox.prototype.contains = function (x, y) {
 // --------------------------------- BinaryBox ---------------------------------
 
 function BinaryBox(x, y, size) {
-    // return new TextBox(x, y, BinaryBox.prototype.WIDTH, BinaryBox.prototype.HEIGHT, this.value, 10);
     this.value = "0";
-    //TextBox.call(x, y, size, size, this.value, 10);
-    return new TextBox(x, y, size, size, this.value, 10);
+    TextBox.call(this, x, y, size, size, this.value, 10);
+}
+
+BinaryBox.prototype = Object.create(TextBox.prototype);
+
+BinaryBox.prototype.invert = function () {
+    this.text = this.text == "0" ? "1" : "0";
 }
 
 var BoxSize = {
     SMALL: 20,
     LARGE: 50
 };
-
-BinaryBox.prototype.invert = function () {
-    this.text = this.text == "0" ? "1" : "0";
-}
 
 // ------------------------------- BinaryBoxset --------------------------------
 
