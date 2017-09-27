@@ -20,6 +20,7 @@ function init() {
 
     var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
     var hammingCoder = new TextBox(50, 135, 200, 50, "Hammingov dekoder");
+    var boxset = new BinaryBoxset("", 42, 105, 5, BoxSize.SMALL, "horizontal");
 
     redraw();
 }
@@ -100,13 +101,17 @@ TextBox.prototype.contains = function (x, y) {
 
 // --------------------------------- BinaryBox ---------------------------------
 
-function BinaryBox(x, y) {
+function BinaryBox(x, y, size) {
+    // return new TextBox(x, y, BinaryBox.prototype.WIDTH, BinaryBox.prototype.HEIGHT, this.value, 10);
     this.value = "0";
-    return new TextBox(x, y, BinaryBox.prototype.WIDTH, BinaryBox.prototype.HEIGHT, this.value, 10);
+    //TextBox.call(x, y, size, size, this.value, 10);
+    return new TextBox(x, y, size, size, this.value, 10);
 }
 
-BinaryBox.prototype.WIDTH = 20;
-BinaryBox.prototype.HEIGHT = 20;
+var BoxSize = {
+    SMALL: 20,
+    LARGE: 50
+};
 
 BinaryBox.prototype.invert = function () {
     this.text = this.text == "0" ? "1" : "0";
@@ -114,17 +119,17 @@ BinaryBox.prototype.invert = function () {
 
 // ------------------------------- BinaryBoxset --------------------------------
 
-function BinaryBoxset(name, x, y, n, orient) {
+function BinaryBoxset(name, x, y, n, size, orient) {
     binaryBoxsets.push(this);
 
     this.name = name;
     this.tiles = [];
 
-    var xOffset = orient == "horizontal" ? BinaryBox.prototype.WIDTH - TextBox.prototype.BORDER: 0;
-    var yOffset = orient == "vertical" ? BinaryBox.prototype.HEIGHT - TextBox.prototype.BORDER: 0;
+    var xOffset = orient == "horizontal" ? size - TextBox.prototype.BORDER: 0;
+    var yOffset = orient == "vertical" ? size - TextBox.prototype.BORDER: 0;
 
     for(var i = 0; i < n; i++) {
-        this.tiles.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1)));
+        this.tiles.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
     }
 }
 
