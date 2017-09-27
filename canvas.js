@@ -41,6 +41,7 @@ function mouseClicked(e) {
         var tile = binaryBoxsets[i].getBinaryBoxIndexForPoint(m.x, m.y);
         if(tile == -1) continue;
         else binaryBoxsets[i].boxes[tile].invert();
+        console.log(binaryBoxsets[i].getBinaryValue());
     }
     redraw();
 }
@@ -102,8 +103,7 @@ TextBox.prototype.contains = function (x, y) {
 // --------------------------------- BinaryBox ---------------------------------
 
 function BinaryBox(x, y, size) {
-    this.value = "0";
-    TextBox.call(this, x, y, size, size, this.value, 10);
+    TextBox.call(this, x, y, size, size, "0", 10);
 }
 
 BinaryBox.prototype = Object.create(TextBox.prototype);
@@ -142,7 +142,11 @@ BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
 }
 
 BinaryBoxset.prototype.getBinaryValue = function() {
-
+    var binary = "";
+    for (var i = 0; i < this.boxes.length; i++) {
+        binary += this.boxes[i].text;
+    }
+    return binary;
 }
 
 var Orientation = {
