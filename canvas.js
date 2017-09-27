@@ -1,8 +1,6 @@
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 
-var tileBoxes = []; // This should eventually become a map
-
 /**
  * Holds all graphical objects which are to be drawn onto the canvas.
  * Every object must have a draw() method which will be called upon
@@ -10,16 +8,20 @@ var tileBoxes = []; // This should eventually become a map
  */
 var objects = [];
 
-// General
+var binaryBoxsets = []; // This should eventually become a map
+
+
+// =============================================================================
+// ============================== GENERAL SECTION ==============================
+// =============================================================================
 
 function init() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     canvas.addEventListener("click", mouseClicked, false);
 
-    var hammingCoder = new BoxWithText(50, 35, 200, 50, "Hammingov koder");
-
-    var hammingCoder = new BoxWithText(50, 135, 200, 50, "Hammingov dekoder");
+    var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
+    var hammingCoder = new TextBox(50, 135, 200, 50, "Hammingov dekoder");
 
     redraw();
 }
@@ -36,10 +38,10 @@ function redraw() {
 function mouseClicked(e) {
     let m = getMouse(e);
 
-    for (var i = 0, len = tileBoxes.length; i < len; i++) {
-        var tile = tileBoxes[i].getTileIndexForPoint(m.x, m.y);
+    for (var i = 0, len = binaryBoxsets.length; i < len; i++) {
+        var tile = binaryBoxsets[i].getBinaryBoxIndexForPoint(m.x, m.y);
         if(tile == -1) continue;
-        else tileBoxes[i].tiles[tile].invert();
+        else binaryBoxsets[i].tiles[tile].invert();
     }
     redraw();
 }
@@ -53,10 +55,14 @@ function getMouse(e) {
     return {x: parseInt(pos.x), y: parseInt(pos.y)};
 }
 
-// BoxWithText
+// =============================================================================
+// =============================== MODEL SECTION ===============================
+// =============================================================================
+
+// ---------------------------------- TextBox ----------------------------------
 
 // A rectangular box with the specified text in the center.
-function BoxWithText(x, y, width, height, text, fontSize) {
+function TextBox(x, y, width, height, text, fontSize) {
     objects.push(this);
 
     this.x = x;
@@ -68,59 +74,65 @@ function BoxWithText(x, y, width, height, text, fontSize) {
     this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "18px Arial";
 }
 
-BoxWithText.prototype.BORDER = 1;
+TextBox.prototype.BORDER = 1;
 
-BoxWithText.prototype.draw = function () {
+TextBox.prototype.draw = function () {
     c.fillStyle = "black";
     c.fillRect(this.x, this.y, this.width, this.height);
 
     c.fillStyle = "white";
-    var border = BoxWithText.prototype.BORDER;
+    var border = TextBox.prototype.BORDER;
     c.fillRect(this.x + border, this.y + border, this.width - 2  * border, this.height - 2 * border);
 
     c.font = this.font;
     c.fillStyle = "black";
     c.textAlign ="center";
     c.textBaseline = "middle";
-    c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+
+    var lineheight = 40;
+    var lines = this.text.split('\n');
+    // for (var i = 0; i < lines.length; i++) {
+        c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+        // c.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + (i * lineheight));
+    // }
 };
 
 // Function to check whether a given set of coordinates is inside the box.
-BoxWithText.prototype.contains = function (x, y) {
+TextBox.prototype.contains = function (x, y) {
     return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
 }
 
-// Tile
+// --------------------------------- BinaryBox ---------------------------------
 
-function Tile(x, y) {
+function BinaryBox(x, y) {
     this.value = "0";
-    return new BoxWithText(x, y, Tile.prototype.WIDTH, Tile.prototype.HEIGHT, this.value, 10);
+    return new TextBox(x, y, BinaryBox.prototype.WIDTH, BinaryBox.prototype.HEIGHT, this.value, 10);
 }
 
-Tile.prototype.WIDTH = 20;
-Tile.prototype.HEIGHT = 20;
+BinaryBox.prototype.WIDTH = 20;
+BinaryBox.prototype.HEIGHT = 20;
 
-Tile.prototype.invert = function () {
+BinaryBox.prototype.invert = function () {
     this.text = this.text == "0" ? "1" : "0";
 }
 
-// TileBox
+// ------------------------------- BinaryBoxset --------------------------------
 
-function TileBox(name, x, y, n, orient) {
-    tileBoxes.push(this);
+function BinaryBoxset(name, x, y, n, orient) {
+    binaryBoxsets.push(this);
 
     this.name = name;
     this.tiles = [];
 
-    var xOffset = orient == "horizontal" ? Tile.prototype.WIDTH - BoxWithText.prototype.BORDER: 0;
-    var yOffset = orient == "vertical" ? Tile.prototype.HEIGHT - BoxWithText.prototype.BORDER: 0;
+    var xOffset = orient == "horizontal" ? BinaryBox.prototype.WIDTH - TextBox.prototype.BORDER: 0;
+    var yOffset = orient == "vertical" ? BinaryBox.prototype.HEIGHT - TextBox.prototype.BORDER: 0;
 
     for(var i = 0; i < n; i++) {
-        this.tiles.push(new Tile(x + xOffset * (i + 1), y + yOffset * (i + 1)));
+        this.tiles.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1)));
     }
 }
 
-TileBox.prototype.getTileIndexForPoint = function (x, y) {
+BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
     for (var i = 0, len = this.tiles.length; i < len; i++) {
         var tile = this.tiles[i];
         if(tile.contains(x, y)) return i;
