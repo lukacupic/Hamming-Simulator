@@ -20,7 +20,7 @@ function init() {
 
     var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
     var hammingCoder = new TextBox(50, 135, 200, 50, "Hammingov dekoder");
-    var boxset = new BinaryBoxset("", 42, 105, 5, BoxSize.SMALL, "horizontal");
+    var boxset = new BinaryBoxset("", 42, 105, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
 
     redraw();
 }
@@ -40,7 +40,7 @@ function mouseClicked(e) {
     for (var i = 0, len = binaryBoxsets.length; i < len; i++) {
         var tile = binaryBoxsets[i].getBinaryBoxIndexForPoint(m.x, m.y);
         if(tile == -1) continue;
-        else binaryBoxsets[i].tiles[tile].invert();
+        else binaryBoxsets[i].boxes[tile].invert();
     }
     redraw();
 }
@@ -123,22 +123,31 @@ function BinaryBoxset(name, x, y, n, size, orient) {
     binaryBoxsets.push(this);
 
     this.name = name;
-    this.tiles = [];
+    this.boxes = [];
 
-    var xOffset = orient == "horizontal" ? size - TextBox.prototype.BORDER: 0;
-    var yOffset = orient == "vertical" ? size - TextBox.prototype.BORDER: 0;
+    var xOffset = orient == Orientation.HORIZONTAL ? size - TextBox.prototype.BORDER: 0;
+    var yOffset = orient == Orientation.VERTICAL ? size - TextBox.prototype.BORDER: 0;
 
     for(var i = 0; i < n; i++) {
-        this.tiles.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
+        this.boxes.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
     }
 }
 
 BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
-    for (var i = 0, len = this.tiles.length; i < len; i++) {
-        var tile = this.tiles[i];
+    for (var i = 0, len = this.boxes.length; i < len; i++) {
+        var tile = this.boxes[i];
         if(tile.contains(x, y)) return i;
     }
     return -1;
 }
+
+BinaryBoxset.prototype.getBinaryValue = function() {
+
+}
+
+var Orientation = {
+    HORIZONTAL: "horizontal",
+    VERTICAL: "vertical"
+};
 
 init();
