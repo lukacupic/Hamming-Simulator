@@ -8,7 +8,7 @@ var c = canvas.getContext('2d');
  */
 var objects = [];
 
-var binaryBoxsets = []; // This should eventually become a map
+var binaryBoxsets = new Map(); // This should eventually become a map
 
 
 // ============================== GENERAL SECTION ==============================
@@ -37,11 +37,11 @@ function redraw() {
 function mouseClicked(e) {
     let m = getMouse(e);
 
-    for (var i = 0, len = binaryBoxsets.length; i < len; i++) {
-        var tile = binaryBoxsets[i].getBinaryBoxIndexForPoint(m.x, m.y);
-        if(tile == -1) continue;
-        else binaryBoxsets[i].boxes[tile].invert();
-        console.log(binaryBoxsets[i].getBinaryValue());
+    for(var [key, value] of binaryBoxsets) {
+        var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
+        if (box == -1) continue;
+        else value.boxes[box].invert();
+        console.log(value.getBinaryValue());
     }
     redraw();
 }
@@ -108,6 +108,8 @@ function BinaryBox(x, y, size) {
 
 BinaryBox.prototype = Object.create(TextBox.prototype);
 
+BinaryBox.prototype.constructor = BinaryBox;
+
 BinaryBox.prototype.invert = function () {
     this.text = this.text == "0" ? "1" : "0";
 }
@@ -120,7 +122,7 @@ var BoxSize = {
 // ------------------------------- BinaryBoxset --------------------------------
 
 function BinaryBoxset(name, x, y, n, size, orient) {
-    binaryBoxsets.push(this);
+    binaryBoxsets.set(name, this);
 
     this.name = name;
     this.boxes = [];
@@ -135,8 +137,8 @@ function BinaryBoxset(name, x, y, n, size, orient) {
 
 BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
     for (var i = 0, len = this.boxes.length; i < len; i++) {
-        var tile = this.boxes[i];
-        if(tile.contains(x, y)) return i;
+        var box = this.boxes[i];
+        if(box.contains(x, y)) return i;
     }
     return -1;
 }
@@ -153,5 +155,11 @@ var Orientation = {
     HORIZONTAL: "horizontal",
     VERTICAL: "vertical"
 };
+
+// =============================== LOGIC SECTION ===============================
+
+// ------------------------------- Boolean logic -------------------------------
+
+
 
 init();
