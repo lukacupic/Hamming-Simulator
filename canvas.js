@@ -25,7 +25,6 @@ function init() {
     boxset2.setInfo(["A", "A", "A", "A", "A"], Location.EAST);
 
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
-    boxset.setInfo(["A", "A", "A", "A", "A"], Location.NORTH);
 
     redraw();
 }
@@ -156,8 +155,9 @@ function BinaryBoxset(name, x, y, n, size, orientation) {
 }
 
 BinaryBoxset.prototype.draw = function () {
-    // Draw info
-    this.drawInfo();
+    if(this.info !== undefined) {
+        this.drawInfo();
+    }
 }
 
 BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
