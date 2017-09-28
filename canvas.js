@@ -40,7 +40,10 @@ function init() {
 
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
 
-    var pipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
+    var openPipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
+    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
+    var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
+    var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
 
     redraw();
 }
@@ -128,7 +131,6 @@ function BinaryBox(x, y, size) {
 }
 
 BinaryBox.prototype = Object.create(TextBox.prototype);
-
 BinaryBox.prototype.constructor = BinaryBox;
 
 BinaryBox.prototype.invert = function () {
@@ -204,7 +206,10 @@ BinaryBoxset.prototype.getBinaryValue = function() {
      }
  }
 
-// --------------------------------- Pipeline ----------------------------------
+
+// ================================= Pipeline ==================================
+
+// --------------------------------- OpenPipe ----------------------------------
 
 var pipeExtra = 3;
 
@@ -216,9 +221,14 @@ function OpenPipe(x, y, length, orientation, direction) {
     this.direction = direction;
 
     if (this.orientation == Orientation.HORIZONTAL) {
-        var topLeft = {x: this.x, y: this.y - border};
-        this.topLeft = topLeft;
-        new TextBox(topLeft.x, topLeft.y, this.length, BoxSize.SMALL, "");
+        this.topLeft = {x: this.x, y: this.y - border};
+        new TextBox(this.topLeft.x, this.topLeft.y, this.length, BoxSize.SMALL, "");
+
+        // "cover-up" rect values
+        this.coverupX = this.topLeft.x - pipeExtra;
+        this.coverupY = this.topLeft.y + border;
+        this.coverupW = this.length + 2 * pipeExtra;
+        this.coverupH = BoxSize.SMALL - 2 * border;
 
     } else if (this.orientation == Orientation.VERTICAL) {
 
@@ -230,8 +240,43 @@ function OpenPipe(x, y, length, orientation, direction) {
 }
 
 OpenPipe.prototype.draw = function() {
-    c.fillStyle = "white";
-    c.fillRect(this.topLeft.x - pipeExtra, this.topLeft.y + border, this.length + 2 * pipeExtra, BoxSize.SMALL - 2 * border);
+    c.fillStyle = "red";
+    c.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
+}
+
+// ----------------------------- OpenEntrancePipe ------------------------------
+
+function OpenEntrancePipe(x, y, length, orientation, direction) {
+    OpenPipe.call(this, x, y, length, orientation, direction);
+    this.coverupW /= 2;
+    this.coverupX += this.coverupW;
+}
+
+OpenEntrancePipe.prototype = Object.create(OpenPipe.prototype);
+OpenEntrancePipe.prototype.constructor = OpenEntrancePipe;
+
+// ------------------------------- OpenExitPipe --------------------------------
+
+function OpenExitPipe(x, y, length, orientation, direction) {
+    OpenPipe.call(this, x, y, length, orientation, direction);
+    this.coverupW /= 2;
+}
+
+OpenExitPipe.prototype = Object.create(OpenPipe.prototype);
+OpenExitPipe.prototype.constructor = OpenExitPipe;
+
+// -------------------------------- ClosedPipe ---------------------------------
+
+function ClosedPipe(x, y, length, orientation, direction) {
+    OpenPipe.call(this, x, y, length, orientation, direction);
+    this.coverupW /= 2;
+}
+
+ClosedPipe.prototype = Object.create(OpenPipe.prototype);
+ClosedPipe.prototype.constructor = ClosedPipe;
+
+ClosedPipe.prototype.draw = function() {
+    // do nothing
 }
 
 
