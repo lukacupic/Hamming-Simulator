@@ -19,8 +19,12 @@ function init() {
     canvas.addEventListener("click", mouseClicked, false);
 
     var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
-    var hammingCoder = new TextBox(50, 135, 200, 50, "Hammingov dekoder");
-    var boxset = new BinaryBoxset("", 42, 105, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+    var hammingDecoder = new TextBox(50, 170, 200, 50, "Hammingov dekoder");
+    var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+    boxset.setInfo(["D1", "A", "A", "A", "A"], Location.NORTH);
+
+    var boxset2 = new BinaryBoxset("testBoxset2", 300, 125, 5, BoxSize.SMALL, Orientation.VERTICAL);
+    boxset2.setInfo(["D1", "A", "A", "A", "A"], Location.WEST);
 
     redraw();
 }
@@ -41,7 +45,8 @@ function mouseClicked(e) {
         var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
         if (box == -1) continue;
         else value.boxes[box].invert();
-        console.log(value.getBinaryValue());
+
+        // console.log(value.getBinaryValue());
     }
     redraw();
 }
@@ -100,9 +105,15 @@ TextBox.prototype.contains = function (x, y) {
     return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
 }
 
+// Gets the central coordinate of this text box
+TextBox.prototype.getCenter = function() {
+    return {x: (this.x + this.width / 2), y: (this.y + this.height / 2)};
+}
+
 // --------------------------------- BinaryBox ---------------------------------
 
 function BinaryBox(x, y, size) {
+    this.size = size;
     TextBox.call(this, x, y, size, size, "0", 10);
 }
 
@@ -121,18 +132,26 @@ var BoxSize = {
 
 // ------------------------------- BinaryBoxset --------------------------------
 
-function BinaryBoxset(name, x, y, n, size, orient) {
+function BinaryBoxset(name, x, y, n, size, orientation) {
+    objects.push(this);
     binaryBoxsets.set(name, this);
 
     this.name = name;
+    this.size = size;
+    this.orientation = orientation;
     this.boxes = [];
 
-    var xOffset = orient == Orientation.HORIZONTAL ? size - TextBox.prototype.BORDER: 0;
-    var yOffset = orient == Orientation.VERTICAL ? size - TextBox.prototype.BORDER: 0;
+    var xOffset = orientation == Orientation.HORIZONTAL ? size - TextBox.prototype.BORDER: 0;
+    var yOffset = orientation == Orientation.VERTICAL ? size - TextBox.prototype.BORDER: 0;
 
     for(var i = 0; i < n; i++) {
         this.boxes.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
     }
+}
+
+BinaryBoxset.prototype.draw = function () {
+    // Draw info
+    this.drawInfo();
 }
 
 BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
@@ -151,9 +170,43 @@ BinaryBoxset.prototype.getBinaryValue = function() {
     return binary;
 }
 
+ BinaryBoxset.prototype.setInfo = function(info, location) {
+     this.info = info;
+     this.location = location;
+ }
+
+ BinaryBoxset.prototype.drawInfo = function() {
+     c.fillStyle = "black";
+
+     for (var i = 0; i < this.info.length; i++) {
+         var currentBox = this.boxes[i];
+
+         var boxCenter = currentBox.getCenter();
+         var x = boxCenter.x;
+         var y = boxCenter.y;
+
+         switch (this.orientation) {
+             case Orientation.HORIZONTAL:
+                y += this.location * this.size;
+                break;
+            case Orientation.VERTICAL:
+                x += this.location * this.size;
+                break;
+         }
+         c.fillText(this.info[i], x, y);
+     }
+ }
+
 var Orientation = {
     HORIZONTAL: "horizontal",
     VERTICAL: "vertical"
+};
+
+var Location = {
+    NORTH: -1,
+    EAST: 1,
+    WEST: -1,
+    SOUTH: 1
 };
 
 // =============================== LOGIC SECTION ===============================
