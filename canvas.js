@@ -1,14 +1,28 @@
 var canvas = document.querySelector('canvas');
 var c = canvas.getContext('2d');
 
-/**
- * Holds all graphical objects which are to be drawn onto the canvas.
- * Every object must have a draw() method which will be called upon
- * drawing.
- */
+/*
+ Holds all graphical objects which are to be drawn onto the canvas.
+ Every object must have a draw() method which will be called upon
+ drawing.
+*/
 var objects = [];
 
+/*
+ A map of all the binary boxes so that they can be accessed by name
+ when needed.
+*/
 var binaryBoxsets = new Map(); // This should eventually become a map
+
+/*
+ The width of each of the component's border.
+*/
+var border = 1;
+
+/*
+ The background color of the canvas.
+*/
+var backgroundColor = "white";
 
 
 // ============================== GENERAL SECTION ==============================
@@ -22,9 +36,11 @@ function init() {
     var hammingDecoder = new TextBox(50, 170, 200, 50, "Hammingov dekoder");
 
     var boxset2 = new BinaryBoxset("testBoxset2", 300, 125, 5, BoxSize.SMALL, Orientation.VERTICAL);
-    boxset2.setInfo(["A", "A", "A", "A", "A"], Location.EAST);
+    boxset2.setInfo(["A", "A", "A", "A", "A"], Direction.EAST);
 
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+
+    var pipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
 
     redraw();
 }
@@ -34,11 +50,6 @@ function redraw() {
     for (var i = 0, len = objects.length; i < len; i++) {
         objects[i].draw();
     }
-}
-
-var Font = {
-    SMALL: "10px Arial",
-    LARGE: "18px Arial"
 }
 
 // ----------------------------------- Mouse -----------------------------------
@@ -58,12 +69,10 @@ function mouseClicked(e) {
 
 function getMouse(e) {
     let rect = e.target.getBoundingClientRect();
-    let pos = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    };
+    let pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
     return {x: parseInt(pos.x), y: parseInt(pos.y)};
 }
+
 
 // =============================== MODEL SECTION ===============================
 
@@ -78,18 +87,14 @@ function TextBox(x, y, width, height, text) {
     this.width = width;
     this.height = height;
     this.text = text;
-
     this.font = Font.SMALL;
 }
-
-TextBox.prototype.BORDER = 1;
 
 TextBox.prototype.draw = function () {
     c.fillStyle = "black";
     c.fillRect(this.x, this.y, this.width, this.height);
 
     c.fillStyle = "white";
-    var border = TextBox.prototype.BORDER;
     c.fillRect(this.x + border, this.y + border, this.width - 2  * border, this.height - 2 * border);
 
     c.font = this.font;
@@ -130,11 +135,6 @@ BinaryBox.prototype.invert = function () {
     this.text = this.text == "0" ? "1" : "0";
 }
 
-var BoxSize = {
-    SMALL: 20,
-    LARGE: 50
-};
-
 // ------------------------------- BinaryBoxset --------------------------------
 
 function BinaryBoxset(name, x, y, n, size, orientation) {
@@ -146,8 +146,8 @@ function BinaryBoxset(name, x, y, n, size, orientation) {
     this.orientation = orientation;
     this.boxes = [];
 
-    var xOffset = orientation == Orientation.HORIZONTAL ? size - TextBox.prototype.BORDER: 0;
-    var yOffset = orientation == Orientation.VERTICAL ? size - TextBox.prototype.BORDER: 0;
+    var xOffset = orientation == Orientation.HORIZONTAL ? size - border: 0;
+    var yOffset = orientation == Orientation.VERTICAL ? size - border: 0;
 
     for(var i = 0; i < n; i++) {
         this.boxes.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
@@ -204,22 +204,64 @@ BinaryBoxset.prototype.getBinaryValue = function() {
      }
  }
 
-var Orientation = {
-    HORIZONTAL: "horizontal",
-    VERTICAL: "vertical"
-};
+// --------------------------------- Pipeline ----------------------------------
 
-var Location = {
-    NORTH: -1,
-    EAST: 1,
-    WEST: -1,
-    SOUTH: 1
-};
+var pipeExtra = 3;
+
+function OpenPipe(x, y, length, orientation, direction) {
+    this.x = x;
+    this.y = y;
+    this.length = length;
+    this.orientation = orientation;
+    this.direction = direction;
+
+    if (this.orientation == Orientation.HORIZONTAL) {
+        var topLeft = {x: this.x, y: this.y - border};
+        this.topLeft = topLeft;
+        new TextBox(topLeft.x, topLeft.y, this.length, BoxSize.SMALL, "");
+
+    } else if (this.orientation == Orientation.VERTICAL) {
+
+    }
+
+    // push 'this' AFTER creating the TextBox; this way the "cover-up" rect
+    // will go over the TexBox's borders
+    objects.push(this);
+}
+
+OpenPipe.prototype.draw = function() {
+    c.fillStyle = "white";
+    c.fillRect(this.topLeft.x - pipeExtra, this.topLeft.y + border, this.length + 2 * pipeExtra, BoxSize.SMALL - 2 * border);
+}
+
 
 // =============================== LOGIC SECTION ===============================
 
 // ------------------------------- Boolean logic -------------------------------
 
 
+// ============================== UTILITY SECTION ==============================
+
+var Font = {
+    SMALL: "10px Arial",
+    LARGE: "18px Arial"
+}
+
+var BoxSize = {
+    SMALL: 20,
+    LARGE: 50
+};
+
+var Orientation = {
+    HORIZONTAL: "horizontal",
+    VERTICAL: "vertical"
+};
+
+var Direction = {
+    NORTH: -1,
+    EAST: 1,
+    WEST: -1,
+    SOUTH: 1
+};
 
 init();
