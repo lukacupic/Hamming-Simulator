@@ -20,11 +20,12 @@ function init() {
 
     var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
     var hammingDecoder = new TextBox(50, 170, 200, 50, "Hammingov dekoder");
-    var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
-    boxset.setInfo(["D1", "A", "A", "A", "A"], Location.NORTH);
 
     var boxset2 = new BinaryBoxset("testBoxset2", 300, 125, 5, BoxSize.SMALL, Orientation.VERTICAL);
-    boxset2.setInfo(["D1", "A", "A", "A", "A"], Location.WEST);
+    boxset2.setInfo(["A", "A", "A", "A", "A"], Location.EAST);
+
+    var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+    boxset.setInfo(["A", "A", "A", "A", "A"], Location.NORTH);
 
     redraw();
 }
@@ -34,6 +35,11 @@ function redraw() {
     for (var i = 0, len = objects.length; i < len; i++) {
         objects[i].draw();
     }
+}
+
+var Font = {
+    SMALL: "10px Arial",
+    LARGE: "18px Arial"
 }
 
 // ----------------------------------- Mouse -----------------------------------
@@ -65,7 +71,7 @@ function getMouse(e) {
 // ---------------------------------- TextBox ----------------------------------
 
 // A rectangular box with the specified text in the center.
-function TextBox(x, y, width, height, text, fontSize) {
+function TextBox(x, y, width, height, text) {
     objects.push(this);
 
     this.x = x;
@@ -74,7 +80,7 @@ function TextBox(x, y, width, height, text, fontSize) {
     this.height = height;
     this.text = text;
 
-    this.font = (fontSize !== undefined) ? fontSize + "px Arial" : "18px Arial";
+    this.font = Font.SMALL;
 }
 
 TextBox.prototype.BORDER = 1;
@@ -177,6 +183,7 @@ BinaryBoxset.prototype.getBinaryValue = function() {
 
  BinaryBoxset.prototype.drawInfo = function() {
      c.fillStyle = "black";
+     c.font = Font.SMALL;
 
      for (var i = 0; i < this.info.length; i++) {
          var currentBox = this.boxes[i];
@@ -187,10 +194,10 @@ BinaryBoxset.prototype.getBinaryValue = function() {
 
          switch (this.orientation) {
              case Orientation.HORIZONTAL:
-                y += this.location * this.size;
+                y += this.location * 0.85 * this.size;
                 break;
             case Orientation.VERTICAL:
-                x += this.location * this.size;
+                x += this.location * 0.90 * this.size;
                 break;
          }
          c.fillText(this.info[i], x, y);
