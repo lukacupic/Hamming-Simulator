@@ -12,7 +12,7 @@ var objects = [];
  A map of all the binary boxes so that they can be accessed by name
  when needed.
 */
-var binaryBoxsets = new Map(); // This should eventually become a map
+var binaryBoxsets = new Map();
 
 /*
  The width of each of the component's border.
@@ -44,6 +44,11 @@ function init() {
     var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
     var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
     var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
+
+    var openPipe = new OpenPipe(600, 150, 40, Orientation.VERTICAL, Direction.EAST);
+    var openEntrancePipe = new OpenEntrancePipe(600, 200, 40, Orientation.VERTICAL, Direction.EAST);
+    var openExitPipe = new OpenExitPipe(600, 250, 40, Orientation.VERTICAL, Direction.EAST);
+    var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
 
     redraw();
 }
@@ -107,10 +112,7 @@ TextBox.prototype.draw = function () {
 
     var lineheight = 40;
     var lines = this.text.split('\n');
-    // for (var i = 0; i < lines.length; i++) {
-        c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
-        // c.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + (i * lineheight));
-    // }
+    c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
 };
 
 // Function to check whether a given set of coordinates is inside the box.
@@ -211,6 +213,10 @@ BinaryBoxset.prototype.getBinaryValue = function() {
 
 // --------------------------------- OpenPipe ----------------------------------
 
+/*
+ Specifies the 'extra width' of the open side of the pipe. This is used to "cover up"
+ a previously placed pipe. The purpose of this is purely aesthetic.
+*/
 var pipeExtra = 3;
 
 function OpenPipe(x, y, length, orientation, direction) {
@@ -231,7 +237,14 @@ function OpenPipe(x, y, length, orientation, direction) {
         this.coverupH = BoxSize.SMALL - 2 * border;
 
     } else if (this.orientation == Orientation.VERTICAL) {
+        this.topLeft = {x: this.x - border, y: this.y};
+        new TextBox(this.topLeft.x, this.topLeft.y, BoxSize.SMALL, this.length, "");
 
+        // "cover-up" rect values
+        this.coverupX = this.topLeft.x + border;
+        this.coverupY = this.topLeft.y - pipeExtra;
+        this.coverupW = BoxSize.SMALL - 2 * border;
+        this.coverupH = this.length + 2 * pipeExtra;
     }
 
     // push 'this' AFTER creating the TextBox; this way the "cover-up" rect
@@ -248,8 +261,12 @@ OpenPipe.prototype.draw = function() {
 
 function OpenEntrancePipe(x, y, length, orientation, direction) {
     OpenPipe.call(this, x, y, length, orientation, direction);
-    this.coverupW /= 2;
-    this.coverupX += this.coverupW;
+
+    if (orientation == Orientation.HORIZONTAL) {
+        this.coverupW /= 2;
+    } else if(orientation == Orientation.VERTICAL) {
+        this.coverupH /= 2;
+    }
 }
 
 OpenEntrancePipe.prototype = Object.create(OpenPipe.prototype);
@@ -259,7 +276,14 @@ OpenEntrancePipe.prototype.constructor = OpenEntrancePipe;
 
 function OpenExitPipe(x, y, length, orientation, direction) {
     OpenPipe.call(this, x, y, length, orientation, direction);
-    this.coverupW /= 2;
+
+    if (orientation == Orientation.HORIZONTAL) {
+        this.coverupW /= 2;
+        this.coverupX += this.coverupW;
+    } else if(orientation == Orientation.VERTICAL) {
+        this.coverupH /= 2;
+        this.coverupY += this.coverupH;
+    }
 }
 
 OpenExitPipe.prototype = Object.create(OpenPipe.prototype);
