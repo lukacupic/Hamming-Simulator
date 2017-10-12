@@ -32,6 +32,7 @@ function init() {
     canvas.height = window.innerHeight;
     canvas.addEventListener("click", mouseClicked, false);
 
+    /*
     var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
     var hammingDecoder = new TextBox(50, 170, 200, 50, "Hammingov dekoder");
 
@@ -41,7 +42,7 @@ function init() {
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
 
     var openPipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
+    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Os ja rientation.HORIZONTAL, Direction.EAST);
     var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
     var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
 
@@ -49,6 +50,10 @@ function init() {
     var openEntrancePipe = new OpenEntrancePipe(600, 200, 40, Orientation.VERTICAL, Direction.EAST);
     var openExitPipe = new OpenExitPipe(600, 250, 40, Orientation.VERTICAL, Direction.EAST);
     var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
+    */
+
+    var openExitPipe = new OpenExitPipe(400, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
+    var openEntrancePipe = new OpenEntrancePipe(525, 185 + BoxSize.SMALL, 60, Orientation.VERTICAL, Direction.EAST);
 
     redraw();
 }
@@ -227,7 +232,7 @@ function OpenPipe(x, y, length, orientation, direction) {
     this.direction = direction;
 
     if (this.orientation == Orientation.HORIZONTAL) {
-        this.topLeft = {x: this.x, y: this.y - border};
+        this.topLeft = {x: this.x, y: this.y};
         new TextBox(this.topLeft.x, this.topLeft.y, this.length, BoxSize.SMALL, "");
 
         // "cover-up" rect values
@@ -237,7 +242,7 @@ function OpenPipe(x, y, length, orientation, direction) {
         this.coverupH = BoxSize.SMALL - 2 * border;
 
     } else if (this.orientation == Orientation.VERTICAL) {
-        this.topLeft = {x: this.x - border, y: this.y};
+        this.topLeft = {x: this.x, y: this.y};
         new TextBox(this.topLeft.x, this.topLeft.y, BoxSize.SMALL, this.length, "");
 
         // "cover-up" rect values
@@ -253,8 +258,28 @@ function OpenPipe(x, y, length, orientation, direction) {
 }
 
 OpenPipe.prototype.draw = function() {
-    c.fillStyle = "red";
+    c.fillStyle = "white";
     c.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
+}
+
+// TODO: implement boxset into pipe <-------------------------------------------
+OpenPipe.prototype.setBoxset = function(size) {
+    this.x = x;
+    this.y = y;
+
+    if (this.orientation == Orientation.HORIZONTAL) {
+
+
+    } else if (this.orientation == Orientation.VERTICAL) {
+
+
+    }
+
+    this.boxset = new BinaryBoxset("testBoxset", 50, 125, size, BoxSize.SMALL, Orientation.HORIZONTAL);
+}
+
+OpenPipe.prototype.getBoxset = function() {
+
 }
 
 // ----------------------------- OpenEntrancePipe ------------------------------
@@ -317,7 +342,7 @@ var Font = {
 }
 
 var BoxSize = {
-    SMALL: 20,
+    SMALL: 25,
     LARGE: 50
 };
 
