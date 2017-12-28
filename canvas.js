@@ -56,7 +56,8 @@ function init() {
 
     var openExitPipe = new ClosedPipe(500, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
     openExitPipe.setBoxset(4);
-    //var openEntrancePipe = new OpenEntrancePipe(525, 185 + BoxSize.SMALL, 60, Orientation.VERTICAL, Direction.EAST);
+    var openEntrancePipe = new OpenPipe(500, 185 + BoxSize.SMALL, 200, Orientation.VERTICAL, Direction.EAST);
+    openEntrancePipe.setBoxset(4);
 
     redraw();
 }
@@ -201,7 +202,8 @@ BinaryBoxset.prototype.getBinaryValue = function() {
     return binary;
 }
 
-// Sets the information for this binary boxset.
+// Sets the information for this binary boxset (i.e. the information about
+// the bits of the boxset) at the given location (specified by Direction).
 BinaryBoxset.prototype.setInfo = function(info, location) {
     this.info = info;
     this.location = location;
@@ -284,7 +286,6 @@ OpenPipe.prototype.draw = function() {
     c.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
 }
 
-// TODO: implement boxset into pipe <-------------------------------------------
 OpenPipe.prototype.setBoxset = function(size) {
     var x = this.x;
     var y = this.y;
@@ -297,7 +298,7 @@ OpenPipe.prototype.setBoxset = function(size) {
 }
 
 OpenPipe.prototype.getBoxset = function() {
-
+    return this.boxset;
 }
 
 // ----------------------------- OpenEntrancePipe ------------------------------
