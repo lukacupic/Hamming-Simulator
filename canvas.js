@@ -42,7 +42,7 @@ function init() {
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
 
     var openPipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Os ja rientation.HORIZONTAL, Direction.EAST);
+    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
     var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
     var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
 
@@ -52,8 +52,11 @@ function init() {
     var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
     */
 
-    var openExitPipe = new OpenExitPipe(400, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(525, 185 + BoxSize.SMALL, 60, Orientation.VERTICAL, Direction.EAST);
+    //var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+
+    var openExitPipe = new ClosedPipe(500, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
+    openExitPipe.setBoxset(4);
+    //var openEntrancePipe = new OpenEntrancePipe(525, 185 + BoxSize.SMALL, 60, Orientation.VERTICAL, Direction.EAST);
 
     redraw();
 }
@@ -103,6 +106,7 @@ function TextBox(x, y, width, height, text) {
     this.font = Font.SMALL;
 }
 
+// Draws the textbox onto the canvas.
 TextBox.prototype.draw = function () {
     c.fillStyle = "black";
     c.fillRect(this.x, this.y, this.width, this.height);
@@ -120,7 +124,7 @@ TextBox.prototype.draw = function () {
     c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
 };
 
-// Function to check whether a given set of coordinates is inside the box.
+// Checks whether a given set of coordinates is inside the box.
 TextBox.prototype.contains = function (x, y) {
     return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
 }
@@ -132,24 +136,30 @@ TextBox.prototype.getCenter = function() {
 
 // --------------------------------- BinaryBox ---------------------------------
 
+// Creates a new BinaryBox at the given coordinates and of the given size.
 function BinaryBox(x, y, size) {
     this.size = size;
     TextBox.call(this, x, y, size, size, "0", 10);
 }
 
+// Inherits properties from TextBox.
 BinaryBox.prototype = Object.create(TextBox.prototype);
 BinaryBox.prototype.constructor = BinaryBox;
 
+// Inverts the current value.
 BinaryBox.prototype.invert = function () {
     this.text = this.text == "0" ? "1" : "0";
 }
 
 // ------------------------------- BinaryBoxset --------------------------------
 
+// Creates a new BinaryBoxset with the given parameters.
 function BinaryBoxset(name, x, y, n, size, orientation) {
     objects.push(this);
     binaryBoxsets.set(name, this);
 
+    this.x = x;
+    this.y = y;
     this.name = name;
     this.size = size;
     this.orientation = orientation;
@@ -159,16 +169,21 @@ function BinaryBoxset(name, x, y, n, size, orientation) {
     var yOffset = orientation == Orientation.VERTICAL ? size - border: 0;
 
     for(var i = 0; i < n; i++) {
-        this.boxes.push(new BinaryBox(x + xOffset * (i + 1), y + yOffset * (i + 1), size));
+         // After the loop, xMax and yMax will hold the "size" of the whole BinaryBoxset
+        this.xMax = x + xOffset * i;
+        this.yMax = y + yOffset * i;
+        this.boxes.push(new BinaryBox(this.xMax, this.yMax, size));
     }
 }
 
+// Draws this boxset.
 BinaryBoxset.prototype.draw = function () {
     if(this.info !== undefined) {
         this.drawInfo();
     }
 }
 
+// Returns the box (of this Boxset) at the specified position.
 BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
     for (var i = 0, len = this.boxes.length; i < len; i++) {
         var box = this.boxes[i];
@@ -177,6 +192,7 @@ BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
     return -1;
 }
 
+// Returns the binary value of this boxset.
 BinaryBoxset.prototype.getBinaryValue = function() {
     var binary = "";
     for (var i = 0; i < this.boxes.length; i++) {
@@ -185,33 +201,39 @@ BinaryBoxset.prototype.getBinaryValue = function() {
     return binary;
 }
 
- BinaryBoxset.prototype.setInfo = function(info, location) {
-     this.info = info;
-     this.location = location;
- }
+// Sets the information for this binary boxset.
+BinaryBoxset.prototype.setInfo = function(info, location) {
+    this.info = info;
+    this.location = location;
+}
 
- BinaryBoxset.prototype.drawInfo = function() {
-     c.fillStyle = "black";
-     c.font = Font.SMALL;
+// Draws the informataion of this binary boxset.
+BinaryBoxset.prototype.drawInfo = function() {
+    c.fillStyle = "black";
+    c.font = Font.SMALL;
 
-     for (var i = 0; i < this.info.length; i++) {
-         var currentBox = this.boxes[i];
+    for (var i = 0; i < this.info.length; i++) {
+        var currentBox = this.boxes[i];
 
-         var boxCenter = currentBox.getCenter();
-         var x = boxCenter.x;
-         var y = boxCenter.y;
+        var boxCenter = currentBox.getCenter();
+        var x = boxCenter.x;
+        var y = boxCenter.y;
 
-         switch (this.orientation) {
-             case Orientation.HORIZONTAL:
-                y += this.location * 0.85 * this.size;
-                break;
-            case Orientation.VERTICAL:
-                x += this.location * 0.90 * this.size;
-                break;
-         }
-         c.fillText(this.info[i], x, y);
-     }
- }
+        switch (this.orientation) {
+         case Orientation.HORIZONTAL:
+            y += this.location * 0.85 * this.size;
+            break;
+        case Orientation.VERTICAL:
+            x += this.location * 0.90 * this.size;
+            break;
+        }
+        c.fillText(this.info[i], x, y);
+    }
+}
+
+BinaryBoxset.prototype.getLength = function() {
+    return this.orientation == Orientation.HORIZONTAL ? this.xMax - this.x : this.yMax - this.y;
+}
 
 
 // ================================= Pipeline ==================================
@@ -219,8 +241,8 @@ BinaryBoxset.prototype.getBinaryValue = function() {
 // --------------------------------- OpenPipe ----------------------------------
 
 /*
- Specifies the 'extra width' of the open side of the pipe. This is used to "cover up"
- a previously placed pipe. The purpose of this is purely aesthetic.
+ Specifies the 'extra width' of the open side of the pipe. This is used to
+ "cover up" the previously placed pipe. The purpose of this is purely aesthetic.
 */
 var pipeExtra = 3;
 
@@ -264,18 +286,14 @@ OpenPipe.prototype.draw = function() {
 
 // TODO: implement boxset into pipe <-------------------------------------------
 OpenPipe.prototype.setBoxset = function(size) {
-    this.x = x;
-    this.y = y;
+    var x = this.x;
+    var y = this.y;
 
-    if (this.orientation == Orientation.HORIZONTAL) {
+    var offset = this.length / 2 - BoxSize.SMALL * size / 2;
+    if(this.orientation == Orientation.HORIZONTAL) x += offset;
+    else if(this.orientation == Orientation.VERTICAL) y += offset;
 
-
-    } else if (this.orientation == Orientation.VERTICAL) {
-
-
-    }
-
-    this.boxset = new BinaryBoxset("testBoxset", 50, 125, size, BoxSize.SMALL, Orientation.HORIZONTAL);
+    this.boxset = new BinaryBoxset("testBoxset", x, y, size, BoxSize.SMALL, this.orientation);
 }
 
 OpenPipe.prototype.getBoxset = function() {
@@ -289,6 +307,7 @@ function OpenEntrancePipe(x, y, length, orientation, direction) {
 
     if (orientation == Orientation.HORIZONTAL) {
         this.coverupW /= 2;
+
     } else if(orientation == Orientation.VERTICAL) {
         this.coverupH /= 2;
     }
@@ -305,6 +324,7 @@ function OpenExitPipe(x, y, length, orientation, direction) {
     if (orientation == Orientation.HORIZONTAL) {
         this.coverupW /= 2;
         this.coverupX += this.coverupW;
+
     } else if(orientation == Orientation.VERTICAL) {
         this.coverupH /= 2;
         this.coverupY += this.coverupH;
