@@ -1,4 +1,11 @@
+/*
+ The canvas object.
+ */
 var canvas = document.querySelector('canvas');
+
+/*
+ The graphical representation of the canvas used for drawing.
+ */
 var c = canvas.getContext('2d');
 
 /*
@@ -53,13 +60,16 @@ function init() {
     */
 
     //var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
+    layoutThePipes();
 
-    var openExitPipe = new ClosedPipe(500, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
+    redraw();
+}
+
+function layoutThePipes() {
+    var openExitPipe = new ClosedPipe(800, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
     openExitPipe.setBoxset(4);
     var openEntrancePipe = new OpenPipe(500, 185 + BoxSize.SMALL, 200, Orientation.VERTICAL, Direction.EAST);
     openEntrancePipe.setBoxset(4);
-
-    redraw();
 }
 
 function redraw() {
@@ -249,8 +259,10 @@ BinaryBoxset.prototype.getLength = function() {
 var pipeExtra = 3;
 
 function OpenPipe(x, y, length, orientation, direction) {
-    this.x = x;
-    this.y = y;
+    var realCoord = getRealCoordinate(x, y);
+    this.x = realCoord.x
+    this.y = realCoord.y;
+
     this.length = length;
     this.orientation = orientation;
     this.direction = direction;
@@ -378,5 +390,11 @@ var Direction = {
     WEST: -1,
     SOUTH: 1
 };
+
+// Converts the given coordinate (with respect to the upper-left corner)
+// to the absolute coordinate defined by the size of the canvas.
+function getRealCoordinate(x, y) {
+    return {x: x * 0.001 * canvas.width, y: y * 0.001 * canvas.height};
+}
 
 init();
