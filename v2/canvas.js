@@ -52,24 +52,18 @@ function layoutThePipes() {
     var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
 
     var openPipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
     var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
 
     var openPipe = new OpenPipe(600, 150, 40, Orientation.VERTICAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(600, 200, 40, Orientation.VERTICAL, Direction.EAST);
-    var openExitPipe = new OpenExitPipe(600, 250, 40, Orientation.VERTICAL, Direction.EAST);
     var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
     */
 	
-    var openPipe = new OpenPipe(600, 150, 40, Orientation.VERTICAL, Direction.EAST);
-    var openPipe2 = new OpenPipeAppend(openPipe, 40, Orientation.VERTICAL, Direction.EAST);
+    var openPipe = new HalfOpenPipe({x: 100, y: 100}, 40, Orientation.HORIZONTAL, Direction.WEST);
+    //var openPipe = new OpenPipe({x: 100, y: 100}, 40, Orientation.VERTICAL, Direction.EAST);
     
     //var boxset2 = new BinaryBoxset("testBoxset2", 300, 125, 5, BoxSize.SMALL, Orientation.VERTICAL);
     //boxset2.setInfo(["A", "A", "A", "A", "A"], Direction.WEST);
-    
-    //var openEntrancePipe = new OpenEntrancePipe(600, 200, 40, Orientation.VERTICAL, Direction.EAST);
-    //var openExitPipe = new OpenExitPipe(600, 250, 40, Orientation.VERTICAL, Direction.EAST);
+
     //var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
 }
 
@@ -255,8 +249,8 @@ BinaryBoxset.prototype.getLength = function() {
 */
 var pipeExtra = 3;
 
-function OpenPipe(x, y, length, orientation, direction) {
-    var realCoord = getRealCoordinate(x, y);
+function OpenPipe(pipe, length, orientation, direction) {
+    var realCoord = getRealCoordinate(pipe.x, pipe.y);
     this.x = realCoord.x
     this.y = realCoord.y;
 
@@ -310,44 +304,34 @@ OpenPipe.prototype.getBoxset = function() {
     return this.boxset;
 }
 
-// ----------------------------- OpenEntrancePipe ------------------------------
+// ------------------------------- HalfOpenPipe --------------------------------
 
-function OpenEntrancePipe(x, y, length, orientation, direction) {
-    OpenPipe.call(this, x, y, length, orientation, direction);
-
-    if (orientation == Orientation.HORIZONTAL) {
-        this.coverupW /= 2;
-
-    } else if(orientation == Orientation.VERTICAL) {
-        this.coverupH /= 2;
-    }
-}
-
-OpenEntrancePipe.prototype = Object.create(OpenPipe.prototype);
-OpenEntrancePipe.prototype.constructor = OpenEntrancePipe;
-
-// ------------------------------- OpenExitPipe --------------------------------
-
-function OpenExitPipe(x, y, length, orientation, direction) {
-    OpenPipe.call(this, x, y, length, orientation, direction);
+function HalfOpenPipe(pipe, length, orientation, direction) {
+    OpenPipe.call(this, pipe, length, orientation, direction);
 
     if (orientation == Orientation.HORIZONTAL) {
         this.coverupW /= 2;
-        this.coverupX += this.coverupW;
+        
+        if (direction == Direction.WEST) {
+            this.coverupX += this.coverupW;
+        }
 
     } else if(orientation == Orientation.VERTICAL) {
         this.coverupH /= 2;
-        this.coverupY += this.coverupH;
+
+        if (direction == Direction.WEST) {
+            this.coverupY += this.coverupH;
+        }
     }
 }
 
-OpenExitPipe.prototype = Object.create(OpenPipe.prototype);
-OpenExitPipe.prototype.constructor = OpenExitPipe;
+HalfOpenPipe.prototype = Object.create(OpenPipe.prototype);
+HalfOpenPipe.prototype.constructor = HalfOpenPipe;
 
 // -------------------------------- ClosedPipe ---------------------------------
 
-function ClosedPipe(x, y, length, orientation, direction) {
-    OpenPipe.call(this, x, y, length, orientation, direction);
+function ClosedPipe(pipe, length, orientation, direction) {
+    OpenPipe.call(this, pipe, length, orientation, direction);
     this.coverupW /= 2;
 }
 
