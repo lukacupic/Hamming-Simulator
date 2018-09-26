@@ -35,41 +35,85 @@ var backgroundColor = "white";
 // ============================== GENERAL SECTION ==============================
 
 function init() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     canvas.addEventListener("click", mouseClicked, false);
 
-    /*
-    var hammingCoder = new TextBox(50, 35, 200, 50, "Hammingov koder");
-    var hammingDecoder = new TextBox(50, 170, 200, 50, "Hammingov dekoder");
-
-    var boxset2 = new BinaryBoxset("testBoxset2", 300, 125, 5, BoxSize.SMALL, Orientation.VERTICAL);
-    boxset2.setInfo(["A", "A", "A", "A", "A"], Direction.EAST);
-
-    var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
-
-    var openPipe = new OpenPipe(400, 150, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(400, 185, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var openExitPipe = new OpenExitPipe(400, 220, 40, Orientation.HORIZONTAL, Direction.EAST);
-    var closedPipe = new ClosedPipe(400, 255, 40, Orientation.HORIZONTAL, Direction.EAST);
-
-    var openPipe = new OpenPipe(600, 150, 40, Orientation.VERTICAL, Direction.EAST);
-    var openEntrancePipe = new OpenEntrancePipe(600, 200, 40, Orientation.VERTICAL, Direction.EAST);
-    var openExitPipe = new OpenExitPipe(600, 250, 40, Orientation.VERTICAL, Direction.EAST);
-    var closedPipe = new ClosedPipe(600, 300, 40, Orientation.VERTICAL, Direction.EAST);
-    */
-
-    //var boxset = new BinaryBoxset("testBoxset", 50, 125, 5, BoxSize.SMALL, Orientation.HORIZONTAL);
-    layoutThePipes();
-
+    drawSchema();
     redraw();
 }
 
-function layoutThePipes() {
-    var openExitPipe = new ClosedPipe(800, 185, 200, Orientation.HORIZONTAL, Direction.EAST);
-    openExitPipe.setBoxset(4);
-    var openEntrancePipe = new OpenPipe(500, 185 + BoxSize.SMALL, 200, Orientation.VERTICAL, Direction.EAST);
-    openEntrancePipe.setBoxset(4);
+function drawSchema() {
+    // encoder
+    var pos1 = {x: 50, y: 100};
+    var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
+
+    var boxsetLen = BoxSize.SMALL * 4;
+    var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
+    var boxset1 = new BinaryBoxset("boxset1", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+
+    var coderSize = boxsetLen - border * 3;
+    var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
+    var coder = new LargeTextBox(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+
+    var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
+    var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
+
+    var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
+    var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
+    pipe3.setBoxset(4, "boxset3");
+
+    var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
+    var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
+    pipe4.setBoxset(3, "boxset4");
+    var genSize = {x: 75, y: 150};
+    var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
+    var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
+
+    var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
+    var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
+
+    var pos6 = {x: pos5.x + pipe5.length - BoxSize.SMALL, y: pos5.y + BoxSize.SMALL};
+    var pipe6 = new HalfOpenPipe(pos6.x, pos6.y, 115, Orientation.VERTICAL, Direction.NORTH);
+
+    var pos7 = {x: (pos1.x * 2 + pos6.x + BoxSize.SMALL - border) / 2, y: pos5.y + pipe6.length};
+    var pipe7 = new HalfOpenPipe(pos7.x, pos7.y, pos6.x - pos7.x + border, Orientation.HORIZONTAL, Direction.EAST);
+
+    var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL};
+    var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, 12, Orientation.VERTICAL, Direction.NORTH);
+
+    var genSize2 = {x: 350, y: 75};
+    var genPos2 = {x: pos8.x - genSize2.x / 2 + BoxSize.SMALL / 2, y: pos8.y - border + pipe8.length};
+    var gen2 = new LargeTextBox(genPos2.x, genPos2.y, genSize2.x, genSize2.y, "Generator pogreške");
+
+
+    // decoder
+    var pos1 = {x: 50, y: 450};
+    var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
+
+    var boxsetLen = BoxSize.SMALL * 4;
+    var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
+    var boxset1 = new BinaryBoxset("boxset1", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+
+    var coderSize = boxsetLen - border * 3;
+    var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
+    var coder = new LargeTextBox(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+
+    var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
+    var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
+
+    var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
+    var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
+    pipe3.setBoxset(4, "boxset3");
+
+    var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
+    var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
+    pipe4.setBoxset(3, "boxset4");
+
+    var genSize = {x: 75, y: 150};
+    var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
+    var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
+
+    var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
+    var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
 }
 
 function redraw() {
@@ -84,12 +128,10 @@ function redraw() {
 function mouseClicked(e) {
     let m = getMouse(e);
 
-    for(var [key, value] of binaryBoxsets) {
+    for (var [key, value] of binaryBoxsets) {
         var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
         if (box == -1) continue;
         else value.boxes[box].invert();
-
-        // console.log(value.getBinaryValue());
     }
     redraw();
 }
@@ -106,15 +148,16 @@ function getMouse(e) {
 // ---------------------------------- TextBox ----------------------------------
 
 // A rectangular box with the specified text in the center.
-function TextBox(x, y, width, height, text) {
+function TextBox(x, y, width, height, text, font) {
     objects.push(this);
 
-    this.x = x;
-    this.y = y;
+    this.x = ~~x;
+    this.y = ~~y;
     this.width = width;
     this.height = height;
     this.text = text;
-    this.font = Font.SMALL;
+    this.font = font;
+    this.isText = isText(this.text);
 }
 
 // Draws the textbox onto the canvas.
@@ -123,16 +166,25 @@ TextBox.prototype.draw = function () {
     c.fillRect(this.x, this.y, this.width, this.height);
 
     c.fillStyle = "white";
-    c.fillRect(this.x + border, this.y + border, this.width - 2  * border, this.height - 2 * border);
+    c.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
 
-    c.font = this.font;
     c.fillStyle = "black";
     c.textAlign ="center";
     c.textBaseline = "middle";
+    c.font = this.font != null ? this.font : Font.SMALL;
 
-    var lineheight = 40;
-    var lines = this.text.split('\n');
-    c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+    if (!this.isText) {
+        c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+        return;
+    }
+
+    // else, split the words and draw each in it's own line
+    var height = parseInt(c.font) * 1.2;
+    var lines = this.text.split("\n");
+
+    for (var i = 0 ; i < lines.length; i++) {
+        c.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + height * i - height / 2);
+    }
 };
 
 // Checks whether a given set of coordinates is inside the box.
@@ -144,6 +196,19 @@ TextBox.prototype.contains = function (x, y) {
 TextBox.prototype.getCenter = function() {
     return {x: (this.x + this.width / 2), y: (this.y + this.height / 2)};
 }
+
+// -------------------------------- LargeTextBox --------------------------------
+
+// Creates a new BinaryBox at the given coordinates and of the given size.
+function LargeTextBox(x, y, width, height, text) {
+    TextBox.call(this, x, y, width, height, text);
+
+    this.font = Font.LARGE;
+}
+
+// Inherits properties from TextBox.
+LargeTextBox.prototype = Object.create(TextBox.prototype);
+LargeTextBox.prototype.constructor = LargeTextBox;
 
 // --------------------------------- BinaryBox ---------------------------------
 
@@ -169,8 +234,8 @@ function BinaryBoxset(name, x, y, n, size, orientation) {
     objects.push(this);
     binaryBoxsets.set(name, this);
 
-    this.x = x;
-    this.y = y;
+    this.x = ~~x;
+    this.y = ~~y;
     this.name = name;
     this.size = size;
     this.orientation = orientation;
@@ -227,18 +292,16 @@ BinaryBoxset.prototype.drawInfo = function() {
     for (var i = 0; i < this.info.length; i++) {
         var currentBox = this.boxes[i];
 
-        var boxCenter = currentBox.getCenter();
-        var x = boxCenter.x;
-        var y = boxCenter.y;
-
-        switch (this.orientation) {
-         case Orientation.HORIZONTAL:
-            y += this.location * 0.85 * this.size;
-            break;
-        case Orientation.VERTICAL:
-            x += this.location * 0.90 * this.size;
-            break;
-        }
+        var x = currentBox.getCenter().x;
+        var y = currentBox.getCenter().y;
+		
+		if(this.orientation == Orientation.HORIZONTAL) {
+			y += this.location * 0.85 * this.size;
+		
+		} else {
+			x += this.location * 0.90 * this.size;
+		}
+		
         c.fillText(this.info[i], x, y);
     }
 }
@@ -254,21 +317,18 @@ BinaryBoxset.prototype.getLength = function() {
 
 /*
  Specifies the 'extra width' of the open side of the pipe. This is used to
- "cover up" the previously placed pipe. The purpose of this is purely aesthetic.
+ "cover up" the previously placed pipe.
 */
 var pipeExtra = 3;
 
-function OpenPipe(x, y, length, orientation, direction) {
-    var realCoord = getRealCoordinate(x, y);
-    this.x = realCoord.x
-    this.y = realCoord.y;
-
+function OpenPipe(x, y, length, orientation) {
+    this.x = ~~x
+    this.y = ~~y;
     this.length = length;
     this.orientation = orientation;
-    this.direction = direction;
+    this.topLeft = {x: this.x, y: this.y};
 
     if (this.orientation == Orientation.HORIZONTAL) {
-        this.topLeft = {x: this.x, y: this.y};
         new TextBox(this.topLeft.x, this.topLeft.y, this.length, BoxSize.SMALL, "");
 
         // "cover-up" rect values
@@ -278,7 +338,6 @@ function OpenPipe(x, y, length, orientation, direction) {
         this.coverupH = BoxSize.SMALL - 2 * border;
 
     } else if (this.orientation == Orientation.VERTICAL) {
-        this.topLeft = {x: this.x, y: this.y};
         new TextBox(this.topLeft.x, this.topLeft.y, BoxSize.SMALL, this.length, "");
 
         // "cover-up" rect values
@@ -298,7 +357,7 @@ OpenPipe.prototype.draw = function() {
     c.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
 }
 
-OpenPipe.prototype.setBoxset = function(size) {
+OpenPipe.prototype.setBoxset = function(size, name) {
     var x = this.x;
     var y = this.y;
 
@@ -306,52 +365,41 @@ OpenPipe.prototype.setBoxset = function(size) {
     if(this.orientation == Orientation.HORIZONTAL) x += offset;
     else if(this.orientation == Orientation.VERTICAL) y += offset;
 
-    this.boxset = new BinaryBoxset("testBoxset", x, y, size, BoxSize.SMALL, this.orientation);
+    this.boxset = new BinaryBoxset(name, x, y, size, BoxSize.SMALL, this.orientation);
 }
 
 OpenPipe.prototype.getBoxset = function() {
     return this.boxset;
 }
 
-// ----------------------------- OpenEntrancePipe ------------------------------
+// ------------------------------- HalfOpenPipe --------------------------------
 
-function OpenEntrancePipe(x, y, length, orientation, direction) {
+function HalfOpenPipe(x, y, length, orientation, direction) {
     OpenPipe.call(this, x, y, length, orientation, direction);
 
     if (orientation == Orientation.HORIZONTAL) {
         this.coverupW /= 2;
+        
+        if (direction == Direction.EAST) {
+            this.coverupX += this.coverupW;
+        }
 
     } else if(orientation == Orientation.VERTICAL) {
         this.coverupH /= 2;
+
+        if (direction == Direction.SOUTH) {
+            this.coverupY += this.coverupH;
+        }
     }
 }
 
-OpenEntrancePipe.prototype = Object.create(OpenPipe.prototype);
-OpenEntrancePipe.prototype.constructor = OpenEntrancePipe;
-
-// ------------------------------- OpenExitPipe --------------------------------
-
-function OpenExitPipe(x, y, length, orientation, direction) {
-    OpenPipe.call(this, x, y, length, orientation, direction);
-
-    if (orientation == Orientation.HORIZONTAL) {
-        this.coverupW /= 2;
-        this.coverupX += this.coverupW;
-
-    } else if(orientation == Orientation.VERTICAL) {
-        this.coverupH /= 2;
-        this.coverupY += this.coverupH;
-    }
-}
-
-OpenExitPipe.prototype = Object.create(OpenPipe.prototype);
-OpenExitPipe.prototype.constructor = OpenExitPipe;
+HalfOpenPipe.prototype = Object.create(OpenPipe.prototype);
+HalfOpenPipe.prototype.constructor = HalfOpenPipe;
 
 // -------------------------------- ClosedPipe ---------------------------------
 
-function ClosedPipe(x, y, length, orientation, direction) {
-    OpenPipe.call(this, x, y, length, orientation, direction);
-    this.coverupW /= 2;
+function ClosedPipe(x, y, length, orientation) {
+    OpenPipe.call(this, x, y, length, orientation);
 }
 
 ClosedPipe.prototype = Object.create(OpenPipe.prototype);
@@ -360,7 +408,6 @@ ClosedPipe.prototype.constructor = ClosedPipe;
 ClosedPipe.prototype.draw = function() {
     // do nothing
 }
-
 
 // =============================== LOGIC SECTION ===============================
 
@@ -371,7 +418,7 @@ ClosedPipe.prototype.draw = function() {
 
 var Font = {
     SMALL: "10px Arial",
-    LARGE: "18px Arial"
+    LARGE: "14px Arial"
 }
 
 var BoxSize = {
@@ -394,7 +441,20 @@ var Direction = {
 // Converts the given coordinate (with respect to the upper-left corner)
 // to the absolute coordinate defined by the size of the canvas.
 function getRealCoordinate(x, y) {
-    return {x: x * 0.001 * canvas.width, y: y * 0.001 * canvas.height};
+    return {x: scaleX(x), y: scaleY(y)};
+}
+
+function scaleX(x) {
+    return x / 1000 * canvas.width;
+}
+
+function scaleY(y) {
+    return y / 1000 * canvas.height;
+}
+
+function isText(str) {
+    return /^[a-zčćđšžA-ZČĆĐŠŽ \n]+$/.test(str);
+    //return / {2}/.test(str);
 }
 
 init();
