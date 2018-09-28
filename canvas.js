@@ -48,7 +48,7 @@ function drawSchema() {
 
     var boxsetLen = BoxSize.SMALL * 4;
     var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
-    var boxset1 = new BinaryBoxset("boxset1", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+    var boxset1 = new BinaryBoxset("encoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
@@ -59,11 +59,14 @@ function drawSchema() {
 
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
-    pipe3.setBoxset(4, "boxset3");
+    pipe3.setBoxset(4, "encoderLower");
+    pipe3.boxset.setInfo(["D3", "D5", "D6", "D7"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
     var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
-    pipe4.setBoxset(3, "boxset4");
+    pipe4.setBoxset(3, "encoderUpper");
+    pipe4.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
+
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
     var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
@@ -71,27 +74,51 @@ function drawSchema() {
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
 
+
+    // error generator
     var pos6 = {x: pos5.x + pipe5.length - BoxSize.SMALL, y: pos5.y + BoxSize.SMALL};
     var pipe6 = new HalfOpenPipe(pos6.x, pos6.y, 115, Orientation.VERTICAL, Direction.NORTH);
 
     var pos7 = {x: (pos1.x * 2 + pos6.x + BoxSize.SMALL - border) / 2, y: pos5.y + pipe6.length};
     var pipe7 = new HalfOpenPipe(pos7.x, pos7.y, pos6.x - pos7.x + border, Orientation.HORIZONTAL, Direction.EAST);
+    pipe7.setBoxset(7, "errGenUpper");
+    pipe7.boxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
 
     var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL};
-    var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, 12, Orientation.VERTICAL, Direction.NORTH);
+    var errGenVertPipeLength = 25;
+    var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, errGenVertPipeLength, Orientation.VERTICAL, Direction.NORTH);
 
-    var genSize2 = {x: 350, y: 75};
+    var genSize2 = {x: 350, y: 80};
     var genPos2 = {x: pos8.x - genSize2.x / 2 + BoxSize.SMALL / 2, y: pos8.y - border + pipe8.length};
     var gen2 = new LargeTextBox(genPos2.x, genPos2.y, genSize2.x, genSize2.y, "Generator pogreške");
+    
+    var boxsetLen = BoxSize.SMALL * 7;
+    var genBoxsetPos2 = {
+        x: (genPos2.x * 2 + genSize2.x) / 2 - boxsetLen / 2, 
+        y: (genPos2.y * 2 + genSize2.y) / 2 - BoxSize.SMALL / 2 + genSize2.y * 0.2
+    };
+    var genBoxset2 = new BinaryBoxset("errGen", genBoxsetPos2.x, genBoxsetPos2.y, 7, BoxSize.SMALL, Orientation.HORIZONTAL);
+
+    var pos9 = {x: pos7.x, y: genPos2.y + genSize2.y};
+    var pipe9 = new HalfOpenPipe(pos9.x, pos9.y, errGenVertPipeLength + BoxSize.SMALL - border, Orientation.VERTICAL, Direction.NORTH);
+
+    var errGenLowerPipeLength = pos9.x - pos1.x;
+    var pos10 = {x: pos9.x - errGenLowerPipeLength, y: pos9.y + errGenVertPipeLength - border};
+    var pipe10 = new HalfOpenPipe(pos10.x, pos10.y, errGenLowerPipeLength + border, Orientation.HORIZONTAL, Direction.EAST);
+    pipe10.setBoxset(7, "errGenLower");
+    pipe10.boxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
+
+    var pos11 = {x: pos10.x, y: pos10.y + BoxSize.SMALL}
+    var pipe11 = new HalfOpenPipe(pos11.x, pos11.y, pipe6.length, Orientation.VERTICAL, Direction.NORTH);
 
 
     // decoder
-    var pos1 = {x: 50, y: 450};
-    var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
+    var pos1 = {x: pos11.x + BoxSize.SMALL - border, y: ~~pos10.y + pipe11.length};
+    var pipe1 = new HalfOpenPipe(pos1.x, pos1.y, pipe1.length - BoxSize.SMALL, Orientation.HORIZONTAL, Direction.WEST);
 
     var boxsetLen = BoxSize.SMALL * 4;
     var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
-    var boxset1 = new BinaryBoxset("boxset1", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+    var boxset1 = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
@@ -102,18 +129,15 @@ function drawSchema() {
 
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
-    pipe3.setBoxset(4, "boxset3");
+    pipe3.setBoxset(3, "decoderLower");
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
     var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
-    pipe4.setBoxset(3, "boxset4");
+    pipe4.setBoxset(3, "decoderUpper");
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
     var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
-
-    var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
-    var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
 }
 
 function redraw() {
@@ -126,7 +150,7 @@ function redraw() {
 // ----------------------------------- Mouse -----------------------------------
 
 function mouseClicked(e) {
-    let m = getMouse(e);
+    var m = getMouse(e);
 
     for (var [key, value] of binaryBoxsets) {
         var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
@@ -137,8 +161,8 @@ function mouseClicked(e) {
 }
 
 function getMouse(e) {
-    let rect = e.target.getBoundingClientRect();
-    let pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+    var rect = e.target.getBoundingClientRect();
+    var pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
     return {x: parseInt(pos.x), y: parseInt(pos.y)};
 }
 
@@ -171,7 +195,7 @@ TextBox.prototype.draw = function () {
     c.fillStyle = "black";
     c.textAlign ="center";
     c.textBaseline = "middle";
-    c.font = this.font != null ? this.font : Font.SMALL;
+    c.font = this.font != undefined ? this.font : Font.SMALL;
 
     if (!this.isText) {
         c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
@@ -194,7 +218,7 @@ TextBox.prototype.contains = function (x, y) {
 
 // Gets the central coordinate of this text box
 TextBox.prototype.getCenter = function() {
-    return {x: (this.x + this.width / 2), y: (this.y + this.height / 2)};
+    return {x: ~~(this.x + this.width / 2), y: ~~(this.y + this.height / 2)};
 }
 
 // -------------------------------- LargeTextBox --------------------------------
@@ -215,7 +239,7 @@ LargeTextBox.prototype.constructor = LargeTextBox;
 // Creates a new BinaryBox at the given coordinates and of the given size.
 function BinaryBox(x, y, size) {
     this.size = size;
-    TextBox.call(this, x, y, size, size, "0", 10);
+    TextBox.call(this, x, y, size, size, "0");
 }
 
 // Inherits properties from TextBox.
@@ -246,8 +270,8 @@ function BinaryBoxset(name, x, y, n, size, orientation) {
 
     for(var i = 0; i < n; i++) {
          // After the loop, xMax and yMax will hold the "size" of the whole BinaryBoxset
-        this.xMax = x + xOffset * i;
-        this.yMax = y + yOffset * i;
+        this.xMax = this.x + xOffset * i;
+        this.yMax = this.y + yOffset * i;
         this.boxes.push(new BinaryBox(this.xMax, this.yMax, size));
     }
 }
@@ -289,19 +313,19 @@ BinaryBoxset.prototype.drawInfo = function() {
     c.fillStyle = "black";
     c.font = Font.SMALL;
 
-    for (var i = 0; i < this.info.length; i++) {
+    for (var i = 0; i < this.boxes.length; i++) {
         var currentBox = this.boxes[i];
 
         var x = currentBox.getCenter().x;
         var y = currentBox.getCenter().y;
-		
-		if(this.orientation == Orientation.HORIZONTAL) {
-			y += this.location * 0.85 * this.size;
-		
-		} else {
-			x += this.location * 0.90 * this.size;
-		}
-		
+
+        if (this.orientation == Orientation.HORIZONTAL) {
+            y += this.location * 0.85 * this.size;
+
+        } else {
+            x += this.location * 0.90 * this.size;
+        }
+        
         c.fillText(this.info[i], x, y);
     }
 }
