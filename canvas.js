@@ -19,7 +19,7 @@ var objects = [];
  A map of all the binary boxes so that they can be accessed by name
  when needed.
 */
-var binaryBoxsets = new Map();
+var boxsets = new Map();
 
 /*
  The width of each of the component's border.
@@ -31,6 +31,10 @@ var border = 1;
 */
 var backgroundColor = "white";
 
+/*
+ The parity flag used for calculations of parity bits.
+*/
+var evenParity = true;
 
 // ============================== GENERAL SECTION ==============================
 
@@ -86,7 +90,7 @@ function drawSchema() {
     pipe7.setBoxset(7, "errGenUpper");
     pipe7.boxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
 
-    var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL};
+    var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL}
     var errGenVertPipeLength = 25;
     var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, errGenVertPipeLength, Orientation.VERTICAL, Direction.NORTH);
 
@@ -171,13 +175,14 @@ function redraw() {
 function mouseClicked(e) {
     var m = getMouse(e);
 
-    for (var [key, value] of binaryBoxsets) {
+    for (var [key, value] of boxsets) {
         var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
         if (box == -1) continue;
 
         // value is clicked boxset
         if (value.isClickable) {
             value.boxes[box].invert();
+            simulate();
         }
     }
     redraw();
@@ -279,7 +284,7 @@ BinaryBox.prototype.invert = function () {
 // Creates a new BinaryBoxset with the given parameters.
 function BinaryBoxset(name, x, y, n, size, orientation, isClickable) {
     objects.push(this);
-    binaryBoxsets.set(name, this);
+    boxsets.set(name, this);
 
     this.x = ~~x;
     this.y = ~~y;
@@ -316,13 +321,20 @@ BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
     return -1;
 }
 
-// Returns the binary value of this boxset.
-BinaryBoxset.prototype.getBinaryValue = function() {
+// Returns the (binary) value of this boxset.
+BinaryBoxset.prototype.getBits = function() {
     var binary = "";
     for (var i = 0; i < this.boxes.length; i++) {
         binary += this.boxes[i].text;
     }
     return binary;
+}
+
+// Sets the bits of this boxset.
+BinaryBoxset.prototype.setBits = function(bits) {
+    for (var i = 0; i < bits.length; i++) {
+        this.boxes[i].text = bits[i];
+    }
 }
 
 // Sets the information for this binary boxset (i.e. the information about
@@ -459,8 +471,103 @@ ClosedPipe.prototype.draw = function() {
 
 // =============================== LOGIC SECTION ===============================
 
+function simulate() {
+    // encoder
+    var firstBoxset = boxsets.get('firstBoxset');
+    var dataBits = firstBoxset.getBits();
+    
+    var encoderLower = boxsets.get('encoderLower');
+    encoderLower.setBits(dataBits);
+
+    var encoderCoder = boxsets.get('encoderCoder');
+    encoderCoder.setBits(dataBits);
+
+    var parityBits = calculateParityBitsFrom(dataBits);
+
+    var encoderUpper = boxsets.get('encoderUpper');
+    encoderUpper.setBits(parityBits);
+
+    var allBits = combineBits(dataBits, parityBits);
+
+    // error generator
+    var errGenUpper = boxsets.get('errGenUpper');
+    errGenUpper.setBits(allBits);
+
+    var errGen = boxsets.get('errGen');
+    var errorBits = errGen.getBits();
+
+    var propagatedBits = binaryOr(allBits, errorBits);
+
+    var errGenLower = boxsets.get('errGenLower');
+    errGenLower.setBits(propagatedBits);
+
+    // decoder
+    var separatedBits = separateBits(propagatedBits);
+    var newDataBits = separatedBits.dataBits;
+    var newParityBits = separatedBits.parityBits;
+
+    var decoderCoder = boxsets.get('decoderCoder');
+    decoderCoder.setBits(newDataBits);
+
+    var decoderUpper = boxsets.get('decoderUpper');
+    decoderUpper.setBits(calculateParityBitsFrom(newDataBits));
+
+    var decoderCentral = boxsets.get('decoderCentral');
+    decoderCentral.setBits(newParityBits);
+
+    var sinGen = boxsets.get('sinGen');
+    sinGen.setBits(binaryXor(decoderUpper.getBits(), decoderCentral.getBits()));
+
+    var decoderLower = boxsets.get('decoderLower');
+    decoderLower.setBits(newParityBits);
+}
+
 // ------------------------------- Boolean logic -------------------------------
 
+function calculateParityBitsFrom(dataBits) {
+    var parityBits = "";
+    parityBits += (Number(dataBits[0]) + Number(dataBits[1]) + Number(dataBits[3])) % 2;
+    parityBits += (Number(dataBits[0]) + Number(dataBits[2]) + Number(dataBits[3])) % 2;
+    parityBits += (Number(dataBits[1]) + Number(dataBits[2]) + Number(dataBits[3])) % 2;
+    return parityBits;
+}
+
+function combineBits(dataBits, parityBits) {
+    var allBits = parityBits.substring(0, 2);
+    allBits += dataBits.charAt(0);
+    allBits += parityBits.charAt(2);
+    allBits += dataBits.substring(1);
+    return allBits;
+}
+
+function separateBits(allBits) {
+    var dataBits = "";
+    var parityBits = "";
+
+    for (var i = 0; i < allBits.length; i++) {
+        var bit = allBits[i];
+        if (i == 2 || i > 3) dataBits += bit;
+        else parityBits += bit;
+    }
+    return {dataBits: dataBits, parityBits: parityBits};
+}
+
+// Check what the hell is going on with these two methods
+function binaryOr(bits1, bits2) {
+    var result = "";
+    for (var i = 0; i < bits1.length; i++) {
+        result += (Number(bits1[i]) + Number(bits2[i])) % 2;
+    }
+    return result;
+}
+
+function binaryXor(bits1, bits2) {
+    var result = "";
+    for (var i = 0; i < bits1.length; i++) {
+        result += (Number(bits1[i]) + Number(bits2[i])) % 2;
+    }
+    return result;
+}
 
 // ============================== UTILITY SECTION ==============================
 
@@ -500,9 +607,15 @@ function scaleY(y) {
     return y / 1000 * canvas.height;
 }
 
+/**
+ * Checks if the given string is a text (i.e. made only of letters and
+ * empty characters).
+ */
 function isText(str) {
     return /^[a-zčćđšžA-ZČĆĐŠŽ \n]+$/.test(str);
-    //return / {2}/.test(str);
 }
 
+/**
+ * Start everything.
+ */
 init();
