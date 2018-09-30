@@ -4,7 +4,125 @@
 <meta charset="utf-8">
 <script>
 
-function hamming_coder_canvas(canvasID) {
+function Circuit(context) {
+    this.width = 325;
+    this.height = 220;
+
+    function drawBox(x, y, size, symbol, negate, context) {
+        context.rect(x, y, size, size);
+        context.stroke();
+
+        context.textAlign="center";
+        context.textBaseline = "middle";
+        context.font = "15px Calibri";
+        context.fillText(symbol, (x * 2 + size) / 2, (y * 2 + size) / 2);
+    }
+
+    function dot(x, y, context) {
+        context.beginPath();
+        var r = 2.5;
+        context.arc(x, y, r, 0, 2 * Math.PI);
+        context.fill();
+    }
+
+    function draw() {
+        // draw inputs
+        drawBox(30, 30, 30, "d3", false, context);
+        drawBox(30, 70, 30, "d2", false, context);
+        drawBox(30, 110, 30, "d1", false, context);
+        drawBox(30, 150, 30, "d0", false, context);
+
+        // draw gates
+        drawBox(180, 35, 40, "&", false, context);
+        drawBox(180, 90, 40, "&", false, context);
+        drawBox(180, 145, 40, "&", false, context);
+
+        // draw lines
+        context.beginPath();
+        context.moveTo(60, 45);
+        context.lineTo(180, 45);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(80, 45);
+        context.lineTo(80, 175);
+        context.lineTo(180, 175);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(80, 45);
+        context.lineTo(80, 110);
+        context.lineTo(180, 110);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 85);
+        context.lineTo(150, 85);
+        context.lineTo(150, 65);
+        context.lineTo(180, 65);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(150, 65);
+        context.lineTo(150, 100);
+        context.lineTo(180, 100);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 125);
+        context.lineTo(100, 125);
+        context.lineTo(100, 55);
+        context.lineTo(180, 55);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(100, 125);
+        context.lineTo(100, 155);
+        context.lineTo(180, 155);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 165);
+        context.lineTo(180, 165);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(170, 165);
+        context.lineTo(170, 120);
+        context.lineTo(180, 120);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 55);
+        context.lineTo(260, 55);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 110);
+        context.lineTo(260, 110);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 165);
+        context.lineTo(260, 165);
+        context.stroke();
+
+        // draw dots
+        dot(100, 125, context);
+        dot(150, 85, context);
+        dot(170, 165, context);
+        dot(80, 110, context);
+        dot(80, 45, context);
+
+        // draw outputs
+        drawBox(260, 40, 30, "c2", false, context);
+        drawBox(260, 95, 30, "c1", false, context);
+        drawBox(260, 150, 30, "c0", false, context);
+    }
+    this.draw = draw;
+}
+
+function HammingCoderCanvas(canvasID) {
     /*
     The canvas object.
     */
@@ -100,6 +218,38 @@ function hamming_coder_canvas(canvasID) {
             }
         }
         redraw();
+    }
+
+    function mouseDoubleClicked(e) {
+        var mouse = getMouse(e);
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            if (!(obj instanceof TextBox)) continue;
+            if (mouse.x < obj.x) continue;
+            if (mouse.x > obj.x + obj.width) continue;
+            if (mouse.y < obj.y) continue;
+            if (mouse.y > obj.y + obj.heigh) continue;
+
+            // overlay!
+            var overlayCircuit = new Circuit(c);
+            var w = overlayCircuit.width;
+            var h = overlayCircuit.height;
+
+            c.scale(2, 2);
+            var center = {x: canvas.width / 2, y: canvas.height / 2};
+            var origin = {x: center.x - w / 2, y: center.y - h / 2};
+
+            c.fillStyle="#808080";
+            c.fillRect(origin.x, origin.y, w, h)
+
+            c.fillStyle="#000000";
+            //c.translate(origin.x, origin.y);
+            overlayCircuit.draw();
+            //c.translate(-origin.x, -origin.y);
+            c.scale(1, 1);
+        }
     }
 
     function getMouse(e) {
@@ -523,9 +673,8 @@ function hamming_coder_canvas(canvasID) {
         return /^[a-zčćđšžA-ZČĆĐŠŽ \n]+$/.test(str);
     }
 
-    // Drawing
-
     canvas.addEventListener("click", mouseClicked, false);
+    canvas.addEventListener("dblclick", mouseDoubleClicked, false);
 
     var firstBoxset = new BinaryBoxset("firstBoxset", 1, 15, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
@@ -651,7 +800,7 @@ function hamming_coder_canvas(canvasID) {
 <body>
     <canvas width="1000" height="900" id="mycanvas"></canvas><br>
         <script>
-            var demo = new hamming_coder_canvas("mycanvas");
+            var demo = new HammingCoderCanvas("mycanvas");
             demo.state.evenParity = true;
         </script>
     <button type="button" onclick="demo.reset();">Resetiraj</button><br><br>
