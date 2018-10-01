@@ -3,12 +3,89 @@
 <head>
 <meta charset="utf-8">
 <script>
-function Circuit(context, canvas, hammingCoderCanvas) {
-    this.width = canvas.width;
-    this.heigh = canvas.height;
+function HammingCoderCanvas(canvasID) {
+    /*
+    The canvas object.
+    */
+    var canvas = document.getElementById(canvasID);
+
+    /*
+    The graphical representation of the canvas used for drawing.
+    */
+    var c = canvas.getContext('2d');
+
+    /*
+    Holds all graphical objects which are to be drawn onto the canvas.
+    Every object must have a draw() method which will be called upon
+    drawing.
+    */
+    var objects = [];
+
+    /*
+    A map of all the binary boxes so that they can be accessed by name
+    when needed.
+    */
+    var boxsets = new Map();
+
+    /*
+    The width of each of the component's border.
+    */
+    var border = 1;
+
+    /*
+    The background color of the canvas.
+    */
+    var backgroundColor = "white";
+
+    var Font = {
+        SMALL: "10px Arial",
+        LARGE: "14px Arial"
+    }
+
+    var BoxSize = {
+        SMALL: 25,
+        LARGE: 50
+    };
+
+    var Orientation = {
+        HORIZONTAL: "horizontal",
+        VERTICAL: "vertical"
+    };
+
+    var Direction = {
+        NORTH: -1,
+        EAST: 1,
+        WEST: -1,
+        SOUTH: 1
+    };
+
+    var state = {
+        evenParity: true
+    };
+    this.state = state;
+
+    // ============================== GENERAL SECTION ==============================
+
+    function redraw() {
+        simulate();
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0, len = objects.length; i < len; i++) {
+            objects[i].draw();
+        }
+    }
+    this.redraw = redraw;
+
+    function reset() {
+        for (var [key, value] of boxsets) {
+            value.resetBits();
+        }
+        redraw();
+    }
+    this.reset = reset;
+
+    // ------------------------- Overlay Circuit -----------------------------------
 
     function drawBox(x, y, size, symbol, negate, context) {
-       // context.lineWidth="2px";
         context.rect(x - 0.5, y - 0.5, size, size);
         context.strokeStyle = "black";
         context.stroke();
@@ -26,20 +103,22 @@ function Circuit(context, canvas, hammingCoderCanvas) {
         context.fill();
     }
 
-    function draw() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+    function drawCircuit(context) {
+        context.save();
+        
+        let w = 260;
+        let h = 155;
+
+        context.translate(canvas.width / 2 - 30, canvas.height / 2 - 30);
+        let factor = canvas.width * 0.5 / 260;
+        context.scale(factor, factor);
+        context.translate(-w / 2, -h / 2);
 
         context.fillStyle="#A9A9A9";
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillRect(30, 30, w, h);
 
-        context.translate(-30, -30);
-        context.fillStyle="black";
-
-        var scale = canvas.width / 325;
-        context.scale(scale, scale);
-
-        context.translate(canvas.width / (scale * 2), canvas.height / (scale * 2));
-        context.translate(-0.5 * 265, -0.5 * (220-60));
+        context.fillStyle="#000000";
+        context.rect(30, 30, w, h);
 
         // draw inputs
         drawBox(30, 30, 30, "d3", false, context);
@@ -135,93 +214,8 @@ function Circuit(context, canvas, hammingCoderCanvas) {
         drawBox(260, 150, 30, "c0", false, context);
 
         context.scale(1, 1);
+        context.restore();
     }
-    this.draw = draw;
-}
-
-function HammingCoderCanvas(canvasID) {
-    /*
-    The canvas object.
-    */
-    var canvas = document.getElementById(canvasID);
-
-    /*
-    The graphical representation of the canvas used for drawing.
-    */
-    var c = canvas.getContext('2d');
-
-    var circuitCanvas = document.getElementById("circuit");
-    var circuitContext = circuitCanvas.getContext('2d');
-    var overlayCircuit = new Circuit(circuitContext, circuitCanvas, this);
-
-    /*
-    Holds all graphical objects which are to be drawn onto the canvas.
-    Every object must have a draw() method which will be called upon
-    drawing.
-    */
-    var objects = [];
-
-    /*
-    A map of all the binary boxes so that they can be accessed by name
-    when needed.
-    */
-    var boxsets = new Map();
-
-    /*
-    The width of each of the component's border.
-    */
-    var border = 1;
-
-    /*
-    The background color of the canvas.
-    */
-    var backgroundColor = "white";
-
-    var Font = {
-        SMALL: "10px Arial",
-        LARGE: "14px Arial"
-    }
-
-    var BoxSize = {
-        SMALL: 25,
-        LARGE: 50
-    };
-
-    var Orientation = {
-        HORIZONTAL: "horizontal",
-        VERTICAL: "vertical"
-    };
-
-    var Direction = {
-        NORTH: -1,
-        EAST: 1,
-        WEST: -1,
-        SOUTH: 1
-    };
-
-    var state = {
-        evenParity: true
-    };
-    this.state = state;
-
-    // ============================== GENERAL SECTION ==============================
-
-    function redraw() {
-        simulate();
-        c.clearRect(0, 0, canvas.width, canvas.height);
-        for (var i = 0, len = objects.length; i < len; i++) {
-            objects[i].draw();
-        }
-    }
-    this.redraw = redraw;
-
-    function reset() {
-        for (var [key, value] of boxsets) {
-            value.resetBits();
-        }
-        redraw();
-    }
-    this.reset = reset;
 
     // ----------------------------------- Mouse -----------------------------------
 
@@ -254,16 +248,7 @@ function HammingCoderCanvas(canvasID) {
             if (mouse.y < obj.y) continue;
             if (mouse.y > obj.y + obj.height) continue;
 
-            // overlay!
-            var w = circuitCanvas.width;
-            var h = circuitCanvas.height;
-            
-            var center = {x: canvas.width / 2, y: canvas.height / 2};
-            var origin = {x: center.x - w / 2, y: center.y - h / 2};
-
-            circuitContext.fillStyle="#000000";
-            circuitCanvas.style.display="block";
-            overlayCircuit.draw();
+            drawCircuit(c);
         }
     }
     this.mouseDoubleClicked = mouseDoubleClicked;
@@ -692,9 +677,9 @@ function HammingCoderCanvas(canvasID) {
     canvas.addEventListener("click", mouseClicked, false);
     canvas.addEventListener("dblclick", mouseDoubleClicked, false);
 
+    // encoder
     var firstBoxset = new BinaryBoxset("firstBoxset", 1, 15, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
-    // encoder
     var pos1 = {x: 50, y: 100};
     var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
 
@@ -806,6 +791,11 @@ function HammingCoderCanvas(canvasID) {
     var corrPos = {x: pos6.x + pipe6.length - border, y: (pos5.y + pos6.y) / 2 - corrSize.y / 2 + BoxSize.SMALL / 2};
     var corr = new LargeTextBox(corrPos.x, corrPos.y, corrSize.x, corrSize.y, "Ispravljanje");
 
+    var pos7 = {x: corrPos.x + corrSize.x - border, y: corrPos.y + corrSize.y / 2 - BoxSize.SMALL / 2};
+    var pipe7 = new ClosedPipe(pos7.x, pos7.y, 100, Orientation.HORIZONTAL);
+
+    var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
+
     redraw();
     
     return this;
@@ -815,10 +805,7 @@ function HammingCoderCanvas(canvasID) {
 </head>
 <body>
     <div style="position:relative; display:inline-block">
-        <canvas id="canvas" width="1000" height="900"></canvas><br>
-        <div>
-            <canvas id="circuit" style="display:none; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); border:1px solid black" width="400" height="400"></canvas><br>
-        </div>
+        <canvas id="canvas" width="900" height="800" style="border:1px solid"></canvas><br>
     </div>
     <script>
         var demo = new HammingCoderCanvas("canvas");
