@@ -3,13 +3,14 @@
 <head>
 <meta charset="utf-8">
 <script>
-
-function Circuit(context) {
-    this.width = 325;
-    this.height = 220;
+function Circuit(context, canvas, hammingCoderCanvas) {
+    this.width = canvas.width;
+    this.heigh = canvas.height;
 
     function drawBox(x, y, size, symbol, negate, context) {
-        context.rect(x, y, size, size);
+       // context.lineWidth="2px";
+        context.rect(x - 0.5, y - 0.5, size, size);
+        context.strokeStyle = "black";
         context.stroke();
 
         context.textAlign="center";
@@ -26,6 +27,20 @@ function Circuit(context) {
     }
 
     function draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        context.fillStyle="#A9A9A9";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.translate(-30, -30);
+        context.fillStyle="black";
+
+        var scale = canvas.width / 325;
+        context.scale(scale, scale);
+
+        context.translate(canvas.width / (scale * 2), canvas.height / (scale * 2));
+        context.translate(-0.5 * 265, -0.5 * (220-60));
+
         // draw inputs
         drawBox(30, 30, 30, "d3", false, context);
         drawBox(30, 70, 30, "d2", false, context);
@@ -118,6 +133,8 @@ function Circuit(context) {
         drawBox(260, 40, 30, "c2", false, context);
         drawBox(260, 95, 30, "c1", false, context);
         drawBox(260, 150, 30, "c0", false, context);
+
+        context.scale(1, 1);
     }
     this.draw = draw;
 }
@@ -132,6 +149,10 @@ function HammingCoderCanvas(canvasID) {
     The graphical representation of the canvas used for drawing.
     */
     var c = canvas.getContext('2d');
+
+    var circuitCanvas = document.getElementById("circuit");
+    var circuitContext = circuitCanvas.getContext('2d');
+    var overlayCircuit = new Circuit(circuitContext, circuitCanvas, this);
 
     /*
     Holds all graphical objects which are to be drawn onto the canvas.
@@ -219,6 +240,7 @@ function HammingCoderCanvas(canvasID) {
         }
         redraw();
     }
+    this.mouseClicked = mouseClicked;
 
     function mouseDoubleClicked(e) {
         var mouse = getMouse(e);
@@ -226,31 +248,25 @@ function HammingCoderCanvas(canvasID) {
         for (var i = 0; i < objects.length; i++) {
             var obj = objects[i];
 
-            if (!(obj instanceof TextBox)) continue;
+            if (!(obj instanceof LargeTextBox)) continue;
             if (mouse.x < obj.x) continue;
             if (mouse.x > obj.x + obj.width) continue;
             if (mouse.y < obj.y) continue;
-            if (mouse.y > obj.y + obj.heigh) continue;
+            if (mouse.y > obj.y + obj.height) continue;
 
             // overlay!
-            var overlayCircuit = new Circuit(c);
-            var w = overlayCircuit.width;
-            var h = overlayCircuit.height;
-
-            c.scale(2, 2);
+            var w = circuitCanvas.width;
+            var h = circuitCanvas.height;
+            
             var center = {x: canvas.width / 2, y: canvas.height / 2};
             var origin = {x: center.x - w / 2, y: center.y - h / 2};
 
-            c.fillStyle="#808080";
-            c.fillRect(origin.x, origin.y, w, h)
-
-            c.fillStyle="#000000";
-            //c.translate(origin.x, origin.y);
+            circuitContext.fillStyle="#000000";
+            circuitCanvas.style.display="block";
             overlayCircuit.draw();
-            //c.translate(-origin.x, -origin.y);
-            c.scale(1, 1);
         }
     }
+    this.mouseDoubleClicked = mouseDoubleClicked;
 
     function getMouse(e) {
         var rect = e.target.getBoundingClientRect();
@@ -798,11 +814,16 @@ function HammingCoderCanvas(canvasID) {
 
 </head>
 <body>
-    <canvas width="1000" height="900" id="mycanvas"></canvas><br>
-        <script>
-            var demo = new HammingCoderCanvas("mycanvas");
-            demo.state.evenParity = true;
-        </script>
+    <div style="position:relative; display:inline-block">
+        <canvas id="canvas" width="1000" height="900"></canvas><br>
+        <div>
+            <canvas id="circuit" style="display:none; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); border:1px solid black" width="400" height="400"></canvas><br>
+        </div>
+    </div>
+    <script>
+        var demo = new HammingCoderCanvas("canvas");
+        demo.state.evenParity = true;
+    </script>
     <button type="button" onclick="demo.reset();">Resetiraj</button><br><br>
 
     <form>
