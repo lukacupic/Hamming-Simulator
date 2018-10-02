@@ -12,7 +12,7 @@ function HammingCoderCanvas(canvasID) {
     /*
     The graphical representation of the canvas used for drawing.
     */
-    var c = canvas.getContext('2d');
+    var context = canvas.getContext('2d');
 
     /*
     Holds all graphical objects which are to be drawn onto the canvas.
@@ -60,161 +60,74 @@ function HammingCoderCanvas(canvasID) {
     };
 
     var state = {
-        evenParity: true
+        evenParity: true,
+        activeCircuit: null
     };
     this.state = state;
 
-    var overlay = false;
 
     // ============================== GENERAL SECTION ==============================
 
     // ------------------------- Circuit Overlay -----------------------------------
 
-    function drawBox(x, y, size, symbol, negate, context) {
-        context.rect(x - 0.5, y - 0.5, size, size);
+    function drawRect(x, y, w, h, symbol, negate) {
+        context.rect(x - 0.5, y - 0.5, w, h);
         context.strokeStyle = "black";
         context.stroke();
 
         context.textAlign="center";
         context.textBaseline = "middle";
         context.font = "15px Calibri";
-        context.fillText(symbol, (x * 2 + size) / 2, (y * 2 + size) / 2);
+        context.fillText(symbol, (x * 2 + w) / 2, (y * 2 + h) / 2);
     }
-
-    function dot(x, y, context) {
+  
+    function drawBox(x, y, size, symbol, negate) {
+        drawRect(x, y, size, size, symbol, negate);
+    }
+    
+    function drawDot(x, y) {
         context.beginPath();
         var r = 2.5;
         context.arc(x, y, r, 0, 2 * Math.PI);
         context.fill();
     }
 
-    function overlayCircuit(context) {
+    function overlayCircuit() {
         context.save();
         
-        let w = 260;
-        let h = 155;
+        let w = state.activeCircuit.circuitWidth;
+        let h = state.activeCircuit.circuitHeight;
 
-        context.translate(canvas.width / 2 - 30, canvas.height / 2 - 30);
+        context.translate(canvas.width / 2, canvas.height / 2);
         let factor = canvas.width * 0.5 / w;
         context.scale(factor, factor);
         context.translate(-w / 2, -h / 2);
 
         context.fillStyle="#A9A9A9";
-        context.fillRect(30, 30, w, h);
+        context.fillRect(0, 0, w, h);
 
         context.fillStyle="#000000";
-        context.rect(30, 30, w, h);
+        context.rect(0, 0, w, h);
 
-        // draw inputs
-        drawBox(30, 30, 30, "d3", false, context);
-        drawBox(30, 70, 30, "d2", false, context);
-        drawBox(30, 110, 30, "d1", false, context);
-        drawBox(30, 150, 30, "d0", false, context);
-
-        // draw gates
-        drawBox(180, 35, 40, "&", false, context);
-        drawBox(180, 90, 40, "&", false, context);
-        drawBox(180, 145, 40, "&", false, context);
-
-        // draw lines
-        context.beginPath();
-        context.moveTo(60, 45);
-        context.lineTo(180, 45);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(80, 45);
-        context.lineTo(80, 175);
-        context.lineTo(180, 175);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(80, 45);
-        context.lineTo(80, 110);
-        context.lineTo(180, 110);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(60, 85);
-        context.lineTo(150, 85);
-        context.lineTo(150, 65);
-        context.lineTo(180, 65);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(150, 65);
-        context.lineTo(150, 100);
-        context.lineTo(180, 100);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(60, 125);
-        context.lineTo(100, 125);
-        context.lineTo(100, 55);
-        context.lineTo(180, 55);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(100, 125);
-        context.lineTo(100, 155);
-        context.lineTo(180, 155);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(60, 165);
-        context.lineTo(180, 165);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(170, 165);
-        context.lineTo(170, 120);
-        context.lineTo(180, 120);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(220, 55);
-        context.lineTo(260, 55);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(220, 110);
-        context.lineTo(260, 110);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(220, 165);
-        context.lineTo(260, 165);
-        context.stroke();
-
-        // draw dots
-        dot(100, 125, context);
-        dot(150, 85, context);
-        dot(170, 165, context);
-        dot(80, 110, context);
-        dot(80, 45, context);
-
-        // draw outputs
-        drawBox(260, 40, 30, "c2", false, context);
-        drawBox(260, 95, 30, "c1", false, context);
-        drawBox(260, 150, 30, "c0", false, context);
+        state.activeCircuit.drawCircuit();
 
         context.scale(1, 1);
         context.restore();
     }
 
-    // ----------------------------- Technicalities --------------------------------
+    // -------------------------------- Misc ------------------------------------
 
     function redraw() {
         simulate();
 
-        c.clearRect(0, 0, canvas.width, canvas.height);
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
         for (var i = 0, len = objects.length; i < len; i++) {
             objects[i].draw();
         }
 
-        if (overlay) {
-            overlayCircuit(c);
+        if (state.activeCircuit != null) {
+            overlayCircuit();
         }
     }
     this.redraw = redraw;
@@ -232,7 +145,7 @@ function HammingCoderCanvas(canvasID) {
     function mouseClicked(e) {
         var m = getMouse(e);
 
-        overlay = false;
+        state.activeCircuit = null;
 
         for (var [key, value] of boxsets) {
             var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
@@ -260,7 +173,7 @@ function HammingCoderCanvas(canvasID) {
             if (mouse.y < obj.y) continue;
             if (mouse.y > obj.y + obj.height) continue;
 
-            overlay = true;
+            state.activeCircuit = obj;
             break;
         }
         redraw();
@@ -293,28 +206,28 @@ function HammingCoderCanvas(canvasID) {
 
     // Draws the textbox onto the canvas.
     TextBox.prototype.draw = function () {
-        c.fillStyle = "black";
-        c.fillRect(this.x, this.y, this.width, this.height);
+        context.fillStyle = "black";
+        context.fillRect(this.x, this.y, this.width, this.height);
 
-        c.fillStyle = "white";
-        c.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
+        context.fillStyle = "white";
+        context.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
 
-        c.fillStyle = "black";
-        c.textAlign ="center";
-        c.textBaseline = "middle";
-        c.font = this.font != undefined ? this.font : Font.SMALL;
+        context.fillStyle = "black";
+        context.textAlign ="center";
+        context.textBaseline = "middle";
+        context.font = this.font != undefined ? this.font : Font.SMALL;
 
         if (!this.isText) {
-            c.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+            context.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
             return;
         }
 
         // else, split the words and draw each in it's own line
-        var height = parseInt(c.font) * 1.2;
+        var height = parseInt(context.font) * 1.2;
         var lines = this.text.split("\n");
 
         for (var i = 0 ; i < lines.length; i++) {
-            c.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + height * i - height / 2);
+            context.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + height * i - height / 2);
         }
     };
 
@@ -437,8 +350,8 @@ function HammingCoderCanvas(canvasID) {
 
     // Draws the informataion of this binary boxset.
     BinaryBoxset.prototype.drawInfo = function() {
-        c.fillStyle = "black";
-        c.font = Font.SMALL;
+        context.fillStyle = "black";
+        context.font = Font.SMALL;
 
         for (var i = 0; i < this.boxes.length; i++) {
             var currentBox = this.boxes[i];
@@ -453,7 +366,7 @@ function HammingCoderCanvas(canvasID) {
                 x += this.location * 0.90 * this.size;
             }
             
-            c.fillText(this.info[i], x, y);
+            context.fillText(this.info[i], x, y);
         }
     }
 
@@ -461,6 +374,262 @@ function HammingCoderCanvas(canvasID) {
         return this.orientation == Orientation.HORIZONTAL ? this.xMax - this.x : this.yMax - this.y;
     }
 
+    // --------------------------------- HammingCoder ----------------------------------
+
+    function HammingCoder(x, y, width, height, text) {
+        LargeTextBox.call(this, x, y, width, height, text);
+
+        this.circuitWidth = 260;
+        this.circuitHeight = 155;
+    }
+
+    HammingCoder.prototype = Object.create(LargeTextBox.prototype);
+    HammingCoder.prototype.constructor = HammingCoder;
+
+    HammingCoder.prototype.drawCircuit = function() {
+        // draw inputs
+        drawBox(30, 30, 30, "d3", false);
+        drawBox(30, 70, 30, "d2", false);
+        drawBox(30, 110, 30, "d1", false);
+        drawBox(30, 150, 30, "d0", false);
+
+        // draw gates
+        drawBox(180, 35, 40, "=1", false);
+        drawBox(180, 90, 40, "=1", false);
+        drawBox(180, 145, 40, "=1", false);
+
+        // draw lines
+        context.beginPath();
+        context.moveTo(60, 45);
+        context.lineTo(180, 45);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(80, 45);
+        context.lineTo(80, 175);
+        context.lineTo(180, 175);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(80, 45);
+        context.lineTo(80, 110);
+        context.lineTo(180, 110);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 85);
+        context.lineTo(150, 85);
+        context.lineTo(150, 65);
+        context.lineTo(180, 65);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(150, 65);
+        context.lineTo(150, 100);
+        context.lineTo(180, 100);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 125);
+        context.lineTo(100, 125);
+        context.lineTo(100, 55);
+        context.lineTo(180, 55);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(100, 125);
+        context.lineTo(100, 155);
+        context.lineTo(180, 155);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(60, 165);
+        context.lineTo(180, 165);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(170, 165);
+        context.lineTo(170, 120);
+        context.lineTo(180, 120);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 55);
+        context.lineTo(260, 55);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 110);
+        context.lineTo(260, 110);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(220, 165);
+        context.lineTo(260, 165);
+        context.stroke();
+
+        // draw dots
+        drawDot(100, 125);
+        drawDot(150, 85);
+        drawDot(170, 165);
+        drawDot(80, 110);
+        drawDot(80, 45);
+
+        // draw outputs
+        drawBox(260, 40, 30, "c2", false);
+        drawBox(260, 95, 30, "c1", false);
+        drawBox(260, 150, 30, "c0", false);
+    }
+
+    // --------------------------------- SyndromeGenerator ----------------------------------
+
+    function SyndromeGenerator(x, y, width, height, text) {
+        LargeTextBox.call(this, x, y, width, height, text);
+
+        this.ioWidth = 30;
+        this.ioHeight = 20;
+        this.gateSize = 40;
+        this.offset = 100;
+        this.origin = {x: 1, y: 1};
+
+        this.circuitWidth = this.ioWidth * 2 + this.offset * 2;
+        this.circuitHeight = this.origin.y + this.ioHeight * 10;
+    }
+
+    SyndromeGenerator.prototype = Object.create(LargeTextBox.prototype);
+    SyndromeGenerator.prototype.constructor = SyndromeGenerator;
+
+    SyndromeGenerator.prototype.drawCircuit = function() {
+        let ioWidth = this.ioWidth;
+        let ioHeight = this.ioHeight;
+        let gateSize = this.gateSize;
+        let offset = this.offset;
+        let origin = this.origin;
+
+        var lineOrigin = origin.x + ioWidth;
+        
+        // inputs 1
+        var input1 = {x: origin.x, y: origin.y};
+        drawRect(input1.x, input1.y, ioWidth, ioHeight, "c4'");
+        
+        var input2 = {x: origin.x, y: origin.y + ioHeight * 1.5};
+        drawRect(input2.x, input2.y, ioWidth, ioHeight, "c2'");
+        
+        var input3 = {x: origin.x, y: origin.y + ioHeight * 3};
+        drawRect(input3.x, input3.y, ioWidth, ioHeight, "c1'");
+        
+        // inputs 2
+        var input4 = {x: origin.x, y: origin.y + ioHeight * 6};
+        drawRect(input4.x, input4.y, ioWidth, ioHeight, "c4");
+        
+        var input5 = {x: origin.x, y: origin.y + ioHeight * 7.5};
+        drawRect(input5.x, input5.y, ioWidth, ioHeight, "c2");
+        
+        var input6 = {x: origin.x, y: origin.y + ioHeight * 9};
+        drawRect(input6.x, input6.y, ioWidth, ioHeight, "c1");
+        
+        // gates
+        var gate1 = {x: lineOrigin + offset, y: origin.y + ioHeight * 2 - gateSize / 2}
+        drawBox(gate1.x, gate1.y, gateSize, "=1");
+        
+        var gate2 = {x: lineOrigin + offset, y: origin.y + ioHeight * 5 - gateSize / 2}
+        drawBox(gate2.x, gate2.y, gateSize, "=1");
+        
+        var gate3 = {x: lineOrigin + offset, y: origin.y + ioHeight * 8 - gateSize / 2}
+        drawBox(gate3.x, gate3.y, gateSize, "=1");
+        
+        // outputs
+        var output1 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 1.5}
+        drawRect(output1.x, output1.y, ioWidth, ioHeight, "s4");
+        
+        var output2 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 4.5}
+        drawRect(output2.x, output2.y, ioWidth, ioHeight, "s2");
+        
+        var output3 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 7.5}
+        drawRect(output3.x, output3.y, ioWidth, ioHeight, "s1");
+        
+        context.beginPath();
+        context.moveTo(lineOrigin, origin.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 2 / 3, origin.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 2 / 3, gate1.y + gateSize / 3);
+        context.lineTo(lineOrigin + offset, gate1.y + gateSize / 3);
+        context.stroke();
+        
+        context.beginPath();
+        context.moveTo(lineOrigin, input4.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 2 / 3, input4.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 2 / 3, gate1.y + gateSize * 2 / 3);
+        context.lineTo(lineOrigin + offset, gate1.y + gateSize * 2 / 3);
+        context.stroke();
+        
+        context.beginPath();
+        context.moveTo(lineOrigin, input3.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 0.5, input3.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 0.5, gate3.y + gateSize * 1 / 3);
+        context.lineTo(lineOrigin + offset, gate3.y + gateSize * 1 / 3);
+        context.stroke();
+        
+        context.beginPath();
+        context.moveTo(lineOrigin, input6.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 0.5, input6.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 0.5, gate3.y + gateSize * 2 / 3);
+        context.lineTo(lineOrigin + offset, gate3.y + gateSize * 2 / 3);
+        context.stroke();
+        
+        context.beginPath();
+        context.moveTo(input2.x + ioWidth, input2.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 1 / 3, input2.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 1 / 3, gate2.y  + gateSize * 1 / 3);
+        context.lineTo(lineOrigin + offset, gate2.y  + gateSize * 1 / 3);
+        context.stroke();
+        
+        context.beginPath();
+        context.moveTo(lineOrigin, input5.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 1 / 3, input5.y + ioHeight / 2);
+        context.lineTo(lineOrigin + offset * 1 / 3, gate2.y  + gateSize * 2 / 3);
+        context.lineTo(lineOrigin + offset, gate2.y  + gateSize * 2 / 3);
+        context.stroke();
+    }
+
+    // --------------------------------- CodeWordGenerator ----------------------------------
+
+    function CodeWordGenerator(x, y, width, height, text) {
+        LargeTextBox.call(this, x, y, width, height, text);
+    }
+
+    CodeWordGenerator.prototype = Object.create(LargeTextBox.prototype);
+    CodeWordGenerator.prototype.constructor = CodeWordGenerator;
+
+    CodeWordGenerator.prototype.drawCircuit = function() {
+
+    }
+
+    // --------------------------------- ErrorGenerator ----------------------------------
+
+    function ErrorGenerator(x, y, width, height, text) {
+        LargeTextBox.call(this, x, y, width, height, text);
+    }
+
+    ErrorGenerator.prototype = Object.create(LargeTextBox.prototype);
+    ErrorGenerator.prototype.constructor = ErrorGenerator;
+
+    ErrorGenerator.prototype.drawCircuit = function() {
+
+    }
+
+    // --------------------------------- Correction ----------------------------------
+
+    function Correction(x, y, width, height, text) {
+        LargeTextBox.call(this, x, y, width, height, text);
+    }
+
+    Correction.prototype = Object.create(LargeTextBox.prototype);
+    Correction.prototype.constructor = Correction;
+
+    Correction.prototype.drawCircuit = function() {
+
+    }
+    
 
     // ================================= Pipeline ==================================
 
@@ -504,8 +673,8 @@ function HammingCoderCanvas(canvasID) {
     }
 
     OpenPipe.prototype.draw = function() {
-        c.fillStyle = "white";
-        c.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
+        context.fillStyle = "white";
+        context.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
     }
 
     OpenPipe.prototype.setBoxset = function(size, name) {
@@ -559,6 +728,7 @@ function HammingCoderCanvas(canvasID) {
     ClosedPipe.prototype.draw = function() {
         // do nothing
     }
+
 
     // =============================== LOGIC SECTION ===============================
 
@@ -664,6 +834,7 @@ function HammingCoderCanvas(canvasID) {
         return result;
     }
 
+
     // ============================== UTILITY SECTION ==============================
 
     // Converts the given coordinate (with respect to the upper-left corner)
@@ -703,7 +874,7 @@ function HammingCoderCanvas(canvasID) {
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
-    var coder = new LargeTextBox(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
@@ -720,7 +891,7 @@ function HammingCoderCanvas(canvasID) {
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
-    var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
+    var gen = new CodeWordGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
@@ -740,7 +911,7 @@ function HammingCoderCanvas(canvasID) {
 
     var genSize2 = {x: 375, y: 115};
     var genPos2 = {x: pos8.x - genSize2.x / 2 + BoxSize.SMALL / 2, y: pos8.y - border + pipe8.length};
-    var gen2 = new LargeTextBox(genPos2.x, genPos2.y, genSize2.x, genSize2.y, "Generator pogreške");
+    var gen2 = new ErrorGenerator(genPos2.x, genPos2.y, genSize2.x, genSize2.y, "Generator pogreške");
 
     var boxsetLen = BoxSize.SMALL * 7;
     var genBoxsetPos2 = {
@@ -772,7 +943,7 @@ function HammingCoderCanvas(canvasID) {
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
-    var coder = new LargeTextBox(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 170, Orientation.VERTICAL, Direction.NORTH);
@@ -789,7 +960,7 @@ function HammingCoderCanvas(canvasID) {
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length / 2) / 2 - genSize.y / 2};
-    var gen = new LargeTextBox(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
+    var gen = new SyndromeGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 105, Orientation.HORIZONTAL);
@@ -803,7 +974,7 @@ function HammingCoderCanvas(canvasID) {
 
     var corrSize = {x: 85, y: 200};
     var corrPos = {x: pos6.x + pipe6.length - border, y: (pos5.y + pos6.y) / 2 - corrSize.y / 2 + BoxSize.SMALL / 2};
-    var corr = new LargeTextBox(corrPos.x, corrPos.y, corrSize.x, corrSize.y, "Ispravljanje");
+    var corr = new Correction(corrPos.x, corrPos.y, corrSize.x, corrSize.y, "Ispravljanje");
 
     var pos7 = {x: corrPos.x + corrSize.x - border, y: corrPos.y + corrSize.y / 2 - BoxSize.SMALL / 2};
     var pipe7 = new ClosedPipe(pos7.x, pos7.y, 100, Orientation.HORIZONTAL);
@@ -834,4 +1005,3 @@ function HammingCoderCanvas(canvasID) {
 
 </body>
 </html>
-
