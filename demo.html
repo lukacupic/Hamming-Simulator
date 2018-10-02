@@ -64,26 +64,11 @@ function HammingCoderCanvas(canvasID) {
     };
     this.state = state;
 
+    var overlay = false;
+
     // ============================== GENERAL SECTION ==============================
 
-    function redraw() {
-        simulate();
-        c.clearRect(0, 0, canvas.width, canvas.height);
-        for (var i = 0, len = objects.length; i < len; i++) {
-            objects[i].draw();
-        }
-    }
-    this.redraw = redraw;
-
-    function reset() {
-        for (var [key, value] of boxsets) {
-            value.resetBits();
-        }
-        redraw();
-    }
-    this.reset = reset;
-
-    // ------------------------- Overlay Circuit -----------------------------------
+    // ------------------------- Circuit Overlay -----------------------------------
 
     function drawBox(x, y, size, symbol, negate, context) {
         context.rect(x - 0.5, y - 0.5, size, size);
@@ -103,14 +88,14 @@ function HammingCoderCanvas(canvasID) {
         context.fill();
     }
 
-    function drawCircuit(context) {
+    function overlayCircuit(context) {
         context.save();
         
         let w = 260;
         let h = 155;
 
         context.translate(canvas.width / 2 - 30, canvas.height / 2 - 30);
-        let factor = canvas.width * 0.5 / 260;
+        let factor = canvas.width * 0.5 / w;
         context.scale(factor, factor);
         context.translate(-w / 2, -h / 2);
 
@@ -217,10 +202,37 @@ function HammingCoderCanvas(canvasID) {
         context.restore();
     }
 
+    // ----------------------------- Technicalities --------------------------------
+
+    function redraw() {
+        simulate();
+
+        c.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0, len = objects.length; i < len; i++) {
+            objects[i].draw();
+        }
+
+        if (overlay) {
+            overlayCircuit(c);
+        }
+    }
+    this.redraw = redraw;
+
+    function reset() {
+        for (var [key, value] of boxsets) {
+            value.resetBits();
+        }
+        redraw();
+    }
+    this.reset = reset;
+
     // ----------------------------------- Mouse -----------------------------------
 
     function mouseClicked(e) {
         var m = getMouse(e);
+
+        overlay = false;
 
         for (var [key, value] of boxsets) {
             var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
@@ -248,8 +260,10 @@ function HammingCoderCanvas(canvasID) {
             if (mouse.y < obj.y) continue;
             if (mouse.y > obj.y + obj.height) continue;
 
-            drawCircuit(c);
+            overlay = true;
+            break;
         }
+        redraw();
     }
     this.mouseDoubleClicked = mouseDoubleClicked;
 
@@ -599,7 +613,7 @@ function HammingCoderCanvas(canvasID) {
         decoderLower.setBits(newParityBits);
     }
 
-    // ------------------------------- Boolean logic -------------------------------
+    // ------------------------------- Calculations -------------------------------
 
     function calculateParityBitsFrom(dataBits) {
         var parityBits = "";
