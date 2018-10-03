@@ -87,7 +87,7 @@ function HammingCoderCanvas(canvasID) {
     
     function drawDot(x, y) {
         context.beginPath();
-        var r = 2.5;
+        let r = 2.5;
         context.arc(x, y, r, 0, 2 * Math.PI);
         context.fill();
     }
@@ -99,15 +99,23 @@ function HammingCoderCanvas(canvasID) {
         let h = state.activeCircuit.circuitHeight;
 
         context.translate(canvas.width / 2, canvas.height / 2);
+
         let factor = canvas.width * 0.5 / w;
         context.scale(factor, factor);
         context.translate(-w / 2, -h / 2);
 
-        context.fillStyle="#A9A9A9";
-        context.fillRect(0, 0, w, h);
+        let circuitBorder = (w + h) / 2 * 0.1;
+        context.translate(-circuitBorder, -circuitBorder);
 
-        context.fillStyle="#000000";
-        context.rect(0, 0, w, h);
+        context.globalAlpha = 0.9;
+        context.fillStyle = "#A9A9A9";
+        context.fillRect(0, 0, w + circuitBorder * 2, h + circuitBorder * 2);
+        context.globalAlpha = 1.0;
+
+        context.fillStyle = "#000000";
+        context.rect(0, 0, w + circuitBorder * 2, h + circuitBorder * 2);
+
+        context.translate(circuitBorder, circuitBorder);
 
         state.activeCircuit.drawCircuit();
 
@@ -143,12 +151,12 @@ function HammingCoderCanvas(canvasID) {
     // ----------------------------------- Mouse -----------------------------------
 
     function mouseClicked(e) {
-        var m = getMouse(e);
+        let m = getMouse(e);
 
         state.activeCircuit = null;
 
-        for (var [key, value] of boxsets) {
-            var box = value.getBinaryBoxIndexForPoint(m.x, m.y);
+        for (let [key, value] of boxsets) {
+            let box = value.getBinaryBoxIndexForPoint(m.x, m.y);
             if (box == -1) continue;
 
             // value is clicked boxset
@@ -164,8 +172,8 @@ function HammingCoderCanvas(canvasID) {
     function mouseDoubleClicked(e) {
         var mouse = getMouse(e);
 
-        for (var i = 0; i < objects.length; i++) {
-            var obj = objects[i];
+        for (let i = 0; i < objects.length; i++) {
+            let obj = objects[i];
 
             if (!(obj instanceof LargeTextBox)) continue;
             if (mouse.x < obj.x) continue;
@@ -181,8 +189,8 @@ function HammingCoderCanvas(canvasID) {
     this.mouseDoubleClicked = mouseDoubleClicked;
 
     function getMouse(e) {
-        var rect = e.target.getBoundingClientRect();
-        var pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+        let rect = e.target.getBoundingClientRect();
+        let pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
         return {x: parseInt(pos.x), y: parseInt(pos.y)};
     }
 
@@ -223,10 +231,10 @@ function HammingCoderCanvas(canvasID) {
         }
 
         // else, split the words and draw each in it's own line
-        var height = parseInt(context.font) * 1.2;
-        var lines = this.text.split("\n");
+        let height = parseInt(context.font) * 1.2;
+        let lines = this.text.split("\n");
 
-        for (var i = 0 ; i < lines.length; i++) {
+        for (let i = 0 ; i < lines.length; i++) {
             context.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + height * i - height / 2);
         }
     };
@@ -291,10 +299,10 @@ function HammingCoderCanvas(canvasID) {
         this.boxes = [];
         this.isClickable = isClickable === undefined ? false : isClickable;
 
-        var xOffset = orientation == Orientation.HORIZONTAL ? size - border: 0;
-        var yOffset = orientation == Orientation.VERTICAL ? size - border: 0;
+        let xOffset = orientation == Orientation.HORIZONTAL ? size - border: 0;
+        let yOffset = orientation == Orientation.VERTICAL ? size - border: 0;
 
-        for(var i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {
             // After the loop, xMax and yMax will hold the "size" of the whole BinaryBoxset
             this.xMax = this.x + xOffset * i;
             this.yMax = this.y + yOffset * i;
@@ -304,15 +312,15 @@ function HammingCoderCanvas(canvasID) {
 
     // Draws this boxset.
     BinaryBoxset.prototype.draw = function () {
-        if(this.info !== undefined) {
+        if (this.info !== undefined) {
             this.drawInfo();
         }
     }
 
     // Returns the box (of this Boxset) at the specified position.
     BinaryBoxset.prototype.getBinaryBoxIndexForPoint = function (x, y) {
-        for (var i = 0, len = this.boxes.length; i < len; i++) {
-            var box = this.boxes[i];
+        for (let i = 0, len = this.boxes.length; i < len; i++) {
+            let box = this.boxes[i];
             if(box.contains(x, y)) return i;
         }
         return -1;
@@ -320,8 +328,8 @@ function HammingCoderCanvas(canvasID) {
 
     // Returns the (binary) value of this boxset.
     BinaryBoxset.prototype.getBits = function() {
-        var binary = "";
-        for (var i = 0; i < this.boxes.length; i++) {
+        let binary = "";
+        for (let i = 0; i < this.boxes.length; i++) {
             binary += this.boxes[i].text;
         }
         return binary;
@@ -329,14 +337,14 @@ function HammingCoderCanvas(canvasID) {
 
     // Sets the bits of this boxset.
     BinaryBoxset.prototype.setBits = function(bits) {
-        for (var i = 0; i < bits.length; i++) {
+        for (let i = 0; i < bits.length; i++) {
             this.boxes[i].text = bits[i];
         }
     }
 
     // Resets the bits of this boxset.
     BinaryBoxset.prototype.resetBits = function() {
-        for (var i = 0; i < this.boxes.length; i++) {
+        for (let i = 0; i < this.boxes.length; i++) {
             this.boxes[i].reset();
         }
     }
@@ -353,11 +361,11 @@ function HammingCoderCanvas(canvasID) {
         context.fillStyle = "black";
         context.font = Font.SMALL;
 
-        for (var i = 0; i < this.boxes.length; i++) {
-            var currentBox = this.boxes[i];
+        for (let i = 0; i < this.boxes.length; i++) {
+            let currentBox = this.boxes[i];
 
-            var x = currentBox.getCenter().x;
-            var y = currentBox.getCenter().y;
+            let x = currentBox.getCenter().x;
+            let y = currentBox.getCenter().y;
 
             if (this.orientation == Orientation.HORIZONTAL) {
                 y += this.location * 0.80 * this.size;
@@ -388,97 +396,97 @@ function HammingCoderCanvas(canvasID) {
 
     HammingCoder.prototype.drawCircuit = function() {
         // draw inputs
-        drawBox(30, 30, 30, "d3", false);
-        drawBox(30, 70, 30, "d2", false);
-        drawBox(30, 110, 30, "d1", false);
-        drawBox(30, 150, 30, "d0", false);
+        drawBox(0, 0, 30, "d3", false);
+        drawBox(0, 40, 30, "d2", false);
+        drawBox(0, 80, 30, "d1", false);
+        drawBox(0, 120, 30, "d0", false);
 
         // draw gates
-        drawBox(180, 35, 40, "=1", false);
-        drawBox(180, 90, 40, "=1", false);
-        drawBox(180, 145, 40, "=1", false);
+        drawBox(150, 5, 40, "=1", false);
+        drawBox(150, 60, 40, "=1", false);
+        drawBox(150, 115, 40, "=1", false);
 
         // draw lines
         context.beginPath();
-        context.moveTo(60, 45);
-        context.lineTo(180, 45);
+        context.moveTo(30, 15);
+        context.lineTo(150, 15);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(80, 45);
-        context.lineTo(80, 175);
-        context.lineTo(180, 175);
+        context.moveTo(50, 15);
+        context.lineTo(50, 145);
+        context.lineTo(150, 145);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(80, 45);
-        context.lineTo(80, 110);
-        context.lineTo(180, 110);
+        context.moveTo(50, 15);
+        context.lineTo(50, 80);
+        context.lineTo(150, 80);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(60, 85);
-        context.lineTo(150, 85);
-        context.lineTo(150, 65);
-        context.lineTo(180, 65);
+        context.moveTo(30, 55);
+        context.lineTo(120, 55);
+        context.lineTo(120, 35);
+        context.lineTo(150, 35);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(150, 65);
-        context.lineTo(150, 100);
-        context.lineTo(180, 100);
+        context.moveTo(120, 35);
+        context.lineTo(120, 70);
+        context.lineTo(150, 70);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(60, 125);
-        context.lineTo(100, 125);
-        context.lineTo(100, 55);
-        context.lineTo(180, 55);
+        context.moveTo(30, 95);
+        context.lineTo(70, 95);
+        context.lineTo(70, 25);
+        context.lineTo(150, 25);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(100, 125);
-        context.lineTo(100, 155);
-        context.lineTo(180, 155);
+        context.moveTo(70, 95);
+        context.lineTo(70, 125);
+        context.lineTo(150, 125);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(60, 165);
-        context.lineTo(180, 165);
+        context.moveTo(30, 135);
+        context.lineTo(150, 135);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(170, 165);
-        context.lineTo(170, 120);
-        context.lineTo(180, 120);
+        context.moveTo(140, 135);
+        context.lineTo(140, 90);
+        context.lineTo(150, 90);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(220, 55);
-        context.lineTo(260, 55);
+        context.moveTo(190, 25);
+        context.lineTo(230, 25);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(220, 110);
-        context.lineTo(260, 110);
+        context.moveTo(190, 80);
+        context.lineTo(230, 80);
         context.stroke();
 
         context.beginPath();
-        context.moveTo(220, 165);
-        context.lineTo(260, 165);
+        context.moveTo(190, 135);
+        context.lineTo(230, 135);
         context.stroke();
 
         // draw dots
-        drawDot(100, 125);
-        drawDot(150, 85);
-        drawDot(170, 165);
-        drawDot(80, 110);
-        drawDot(80, 45);
+        drawDot(70, 95);
+        drawDot(120, 55);
+        drawDot(140, 135);
+        drawDot(50, 80);
+        drawDot(50, 15);
 
         // draw outputs
-        drawBox(260, 40, 30, "c2", false);
-        drawBox(260, 95, 30, "c1", false);
-        drawBox(260, 150, 30, "c0", false);
+        drawBox(230, 10, 30, "c2", false);
+        drawBox(230, 65, 30, "c1", false);
+        drawBox(230, 120, 30, "c0", false);
     }
 
     // --------------------------------- SyndromeGenerator ----------------------------------
@@ -492,7 +500,7 @@ function HammingCoderCanvas(canvasID) {
         this.offset = 100;
         this.origin = {x: 1, y: 1};
 
-        this.circuitWidth = this.ioWidth * 2 + this.offset * 2;
+        this.circuitWidth = this.ioWidth * 2 + this.gateSize + this.offset * 2;
         this.circuitHeight = this.origin.y + this.ioHeight * 10;
     }
 
@@ -506,46 +514,46 @@ function HammingCoderCanvas(canvasID) {
         let offset = this.offset;
         let origin = this.origin;
 
-        var lineOrigin = origin.x + ioWidth;
+        let lineOrigin = origin.x + ioWidth;
         
         // inputs 1
-        var input1 = {x: origin.x, y: origin.y};
+        let input1 = {x: origin.x, y: origin.y};
         drawRect(input1.x, input1.y, ioWidth, ioHeight, "c4'");
         
-        var input2 = {x: origin.x, y: origin.y + ioHeight * 1.5};
+        let input2 = {x: origin.x, y: origin.y + ioHeight * 1.5};
         drawRect(input2.x, input2.y, ioWidth, ioHeight, "c2'");
         
-        var input3 = {x: origin.x, y: origin.y + ioHeight * 3};
+        let input3 = {x: origin.x, y: origin.y + ioHeight * 3};
         drawRect(input3.x, input3.y, ioWidth, ioHeight, "c1'");
         
         // inputs 2
-        var input4 = {x: origin.x, y: origin.y + ioHeight * 6};
+        let input4 = {x: origin.x, y: origin.y + ioHeight * 6};
         drawRect(input4.x, input4.y, ioWidth, ioHeight, "c4");
         
-        var input5 = {x: origin.x, y: origin.y + ioHeight * 7.5};
+        let input5 = {x: origin.x, y: origin.y + ioHeight * 7.5};
         drawRect(input5.x, input5.y, ioWidth, ioHeight, "c2");
         
-        var input6 = {x: origin.x, y: origin.y + ioHeight * 9};
+        let input6 = {x: origin.x, y: origin.y + ioHeight * 9};
         drawRect(input6.x, input6.y, ioWidth, ioHeight, "c1");
         
         // gates
-        var gate1 = {x: lineOrigin + offset, y: origin.y + ioHeight * 2 - gateSize / 2}
+        let gate1 = {x: lineOrigin + offset, y: origin.y + ioHeight * 2 - gateSize / 2}
         drawBox(gate1.x, gate1.y, gateSize, "=1");
         
-        var gate2 = {x: lineOrigin + offset, y: origin.y + ioHeight * 5 - gateSize / 2}
+        let gate2 = {x: lineOrigin + offset, y: origin.y + ioHeight * 5 - gateSize / 2}
         drawBox(gate2.x, gate2.y, gateSize, "=1");
         
-        var gate3 = {x: lineOrigin + offset, y: origin.y + ioHeight * 8 - gateSize / 2}
+        let gate3 = {x: lineOrigin + offset, y: origin.y + ioHeight * 8 - gateSize / 2}
         drawBox(gate3.x, gate3.y, gateSize, "=1");
         
         // outputs
-        var output1 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 1.5}
+        let output1 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 1.5}
         drawRect(output1.x, output1.y, ioWidth, ioHeight, "s4");
         
-        var output2 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 4.5}
+        let output2 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 4.5}
         drawRect(output2.x, output2.y, ioWidth, ioHeight, "s2");
         
-        var output3 = {x: lineOrigin + offset * 2, y: origin.y + ioHeight * 7.5}
+        let output3 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 7.5}
         drawRect(output3.x, output3.y, ioWidth, ioHeight, "s1");
         
         context.beginPath();
@@ -589,6 +597,21 @@ function HammingCoderCanvas(canvasID) {
         context.lineTo(lineOrigin + offset * 1 / 3, gate2.y  + gateSize * 2 / 3);
         context.lineTo(lineOrigin + offset, gate2.y  + gateSize * 2 / 3);
         context.stroke();
+
+        context.beginPath();
+        context.moveTo(gate1.x + gateSize, gate1.y + gateSize / 2);
+        context.lineTo(gate1.x + gateSize + offset, gate1.y + gateSize / 2);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(gate2.x + gateSize, gate2.y + gateSize / 2);
+        context.lineTo(gate2.x + gateSize + offset, gate2.y + gateSize / 2);
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(gate3.x + gateSize, gate3.y + gateSize / 2);
+        context.lineTo(gate3.x + gateSize + offset, gate3.y + gateSize / 2);
+        context.stroke();
     }
 
     // --------------------------------- CodeWordGenerator ----------------------------------
@@ -608,13 +631,62 @@ function HammingCoderCanvas(canvasID) {
 
     function ErrorGenerator(x, y, width, height, text) {
         LargeTextBox.call(this, x, y, width, height, text);
+
+        this.ioWidth = 30;
+        this.ioHeight = 20;
+        this.gateSize = 40;
+        this.offset = 100;
+        this.origin = {x: 1, y: 10};
+
+        this.circuitWidth = this.ioWidth * 2 + this.gateSize + this.offset * 2;
+        this.circuitHeight = this.origin.y + this.ioHeight * 6 * 3.5 + this.ioHeight * 1.25;
     }
 
     ErrorGenerator.prototype = Object.create(LargeTextBox.prototype);
     ErrorGenerator.prototype.constructor = ErrorGenerator;
 
     ErrorGenerator.prototype.drawCircuit = function() {
-
+        let ioWidth = 30;
+        let ioHeight = 20;
+        let gateSize = 42;
+        let offset = 100;
+        let origin = {x: 1, y: 1};
+            
+        let lineOrigin = origin.x + ioWidth;
+        
+        let labels = ["c1", "c2", "d3", "c4", "d5", "d6", "d7"];
+        
+        for (let i = 0; i < 7; i++) {
+            let heightUpper = origin.y + ioHeight * i * 3.5;
+            let heightLower = heightUpper + ioHeight * 1.25;
+            
+            drawRect(origin.x, heightUpper, ioWidth, ioHeight, labels[i]);
+            drawRect(origin.x, heightLower, ioWidth, ioHeight, "g" + (i+1));
+            
+            context.beginPath();
+            context.moveTo(lineOrigin, heightUpper + ioHeight * 0.5);
+            context.lineTo(lineOrigin + offset, heightUpper + ioHeight * 0.5);
+            context.stroke();
+            
+            context.beginPath();
+            context.moveTo(lineOrigin, heightLower + ioHeight * 0.5);
+            context.lineTo(lineOrigin + offset, heightLower + ioHeight * 0.5);
+            context.stroke();
+            
+            let middleUpper = heightUpper + ioHeight * 0.5;
+            let middleLower = heightLower + ioHeight * 0.5;
+            let middle = (heightUpper + ioHeight * 0.5 + heightLower + ioHeight * 0.5) * 0.5 - gateSize * 0.5;
+            let gateOrigin = {x: lineOrigin + offset, y: (middleUpper + middleLower) * 0.5 - gateSize * 0.5}
+            
+            drawRect(gateOrigin.x, gateOrigin.y, gateSize, gateSize, "=1");
+            
+            context.beginPath();
+            context.moveTo(gateOrigin.x + gateSize, gateOrigin.y + gateSize * 0.5);
+            context.lineTo(gateOrigin.x + gateSize + offset, gateOrigin.y + gateSize * 0.5);
+            context.stroke();
+            
+            drawRect(gateOrigin.x + gateSize + offset, middle + ioHeight * 0.5, ioWidth, ioHeight, labels[i]);
+        }
     }
 
     // --------------------------------- Correction ----------------------------------
@@ -678,10 +750,10 @@ function HammingCoderCanvas(canvasID) {
     }
 
     OpenPipe.prototype.setBoxset = function(size, name) {
-        var x = this.x;
-        var y = this.y;
+        let x = this.x;
+        let y = this.y;
 
-        var offset = this.length / 2 - BoxSize.SMALL * size / 2;
+        let offset = this.length / 2 - BoxSize.SMALL * size / 2;
         if(this.orientation == Orientation.HORIZONTAL) x += offset;
         else if(this.orientation == Orientation.VERTICAL) y += offset;
 
@@ -734,60 +806,60 @@ function HammingCoderCanvas(canvasID) {
 
     function simulate() {
         // encoder
-        var firstBoxset = boxsets.get('firstBoxset');
-        var dataBits = firstBoxset.getBits();
+        let firstBoxset = boxsets.get('firstBoxset');
+        let dataBits = firstBoxset.getBits();
         
-        var encoderLower = boxsets.get('encoderLower');
+        let encoderLower = boxsets.get('encoderLower');
         encoderLower.setBits(dataBits);
 
-        var encoderCoder = boxsets.get('encoderCoder');
+        let encoderCoder = boxsets.get('encoderCoder');
         encoderCoder.setBits(dataBits);
 
-        var parityBits = calculateParityBitsFrom(dataBits);
+        let parityBits = calculateParityBitsFrom(dataBits);
 
-        var encoderUpper = boxsets.get('encoderUpper');
+        let encoderUpper = boxsets.get('encoderUpper');
         encoderUpper.setBits(parityBits);
 
-        var allBits = combineBits(dataBits, parityBits);
+        let allBits = combineBits(dataBits, parityBits);
 
         // error generator
-        var errGenUpper = boxsets.get('errGenUpper');
+        let errGenUpper = boxsets.get('errGenUpper');
         errGenUpper.setBits(allBits);
 
-        var errGen = boxsets.get('errGen');
-        var errorBits = errGen.getBits();
+        let errGen = boxsets.get('errGen');
+        let errorBits = errGen.getBits();
 
-        var propagatedBits = binaryOr(allBits, errorBits);
+        let propagatedBits = binaryOr(allBits, errorBits);
 
-        var errGenLower = boxsets.get('errGenLower');
+        let errGenLower = boxsets.get('errGenLower');
         errGenLower.setBits(propagatedBits);
 
         // decoder
-        var separatedBits = separateBits(propagatedBits);
-        var newDataBits = separatedBits.dataBits;
-        var newParityBits = separatedBits.parityBits;
+        let separatedBits = separateBits(propagatedBits);
+        let newDataBits = separatedBits.dataBits;
+        let newParityBits = separatedBits.parityBits;
 
-        var decoderCoder = boxsets.get('decoderCoder');
+        let decoderCoder = boxsets.get('decoderCoder');
         decoderCoder.setBits(newDataBits);
 
-        var decoderUpper = boxsets.get('decoderUpper');
+        let decoderUpper = boxsets.get('decoderUpper');
         decoderUpper.setBits(calculateParityBitsFrom(newDataBits));
 
-        var decoderCentral = boxsets.get('decoderCentral');
+        let decoderCentral = boxsets.get('decoderCentral');
         decoderCentral.setBits(newParityBits);
 
-        var sinGen = boxsets.get('sinGen');
+        let sinGen = boxsets.get('sinGen');
         sinGen.setBits(binaryXor(decoderUpper.getBits(), decoderCentral.getBits()));
 
-        var decoderLower = boxsets.get('decoderLower');
+        let decoderLower = boxsets.get('decoderLower');
         decoderLower.setBits(newParityBits);
     }
 
     // ------------------------------- Calculations -------------------------------
 
     function calculateParityBitsFrom(dataBits) {
-        var parityBits = "";
-        var one = state.evenParity ? 0 : 1;
+        let parityBits = "";
+        let one = state.evenParity ? 0 : 1;
         parityBits += (Number(dataBits[0]) + Number(dataBits[1]) + Number(dataBits[3]) + one) % 2;
         parityBits += (Number(dataBits[0]) + Number(dataBits[2]) + Number(dataBits[3]) + one) % 2;
         parityBits += (Number(dataBits[1]) + Number(dataBits[2]) + Number(dataBits[3]) + one) % 2;
@@ -795,7 +867,7 @@ function HammingCoderCanvas(canvasID) {
     }
 
     function combineBits(dataBits, parityBits) {
-        var allBits = parityBits.substring(0, 2);
+        let allBits = parityBits.substring(0, 2);
         allBits += dataBits.charAt(0);
         allBits += parityBits.charAt(2);
         allBits += dataBits.substring(1);
@@ -803,11 +875,11 @@ function HammingCoderCanvas(canvasID) {
     }
 
     function separateBits(allBits) {
-        var dataBits = "";
-        var parityBits = "";
+        let dataBits = "";
+        let parityBits = "";
 
-        for (var i = 0; i < allBits.length; i++) {
-            var bit = allBits[i];
+        for (let i = 0; i < allBits.length; i++) {
+            let bit = allBits[i];
             if (i == 2 || i > 3) {
                 dataBits += bit;
             } else {
@@ -819,16 +891,16 @@ function HammingCoderCanvas(canvasID) {
 
     // Check what the hell is going on with these two methods
     function binaryOr(bits1, bits2) {
-        var result = "";
-        for (var i = 0; i < bits1.length; i++) {
+        let result = "";
+        for (let i = 0; i < bits1.length; i++) {
             result += (Number(bits1[i]) + Number(bits2[i])) % 2;
         }
         return result;
     }
 
     function binaryXor(bits1, bits2) {
-        var result = "";
-        for (var i = 0; i < bits1.length; i++) {
+        let result = "";
+        for (let i = 0; i < bits1.length; i++) {
             result += (Number(bits1[i]) + Number(bits2[i])) % 2;
         }
         return result;

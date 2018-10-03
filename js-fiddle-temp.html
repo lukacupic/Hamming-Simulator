@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+function hamming_coder_canvas(canvasID) {
+  var canvas = document.getElementById(canvasID);
+  var context = canvas.getContext('2d');
+
+  function draw(canvas, context) {
+    context.beginPath();
+    context.strokeStyle = '#000000';
+    context.rect(10, 10, 30, 30);
+    context.stroke();
+  }
+
+  draw(canvas, context);
+
+  this.repaint = function() {
+    draw(canvas, context);
+  }
+
+  return this;
+}
+</script>
+</head>
+<body>
+  <canvas width="500" height="500" id="mycanvas"></canvas>
+  <script>
+    var demo = new hamming_coder_canvas("mycanvas");
+  </script>
+</body>
+</html>
