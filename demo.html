@@ -79,6 +79,13 @@ function HammingCoderCanvas(canvasID) {
         context.textBaseline = "middle";
         context.font = "15px Calibri";
         context.fillText(symbol, (x * 2 + w) / 2, (y * 2 + h) / 2);
+
+        if (negate) {
+            context.beginPath();
+            var r = 4;
+            context.arc(x + w + r , y + h / 2, r, 0, 2 * Math.PI);
+            context.stroke();
+        }
     }
   
     function drawBox(x, y, size, symbol, negate) {
@@ -267,7 +274,13 @@ function HammingCoderCanvas(canvasID) {
     // Creates a new BinaryBox at the given coordinates and of the given size.
     function BinaryBox(x, y, size) {
         this.size = size;
-        TextBox.call(this, x, y, size, size, "0");
+
+        if (size == BoxSize.LARGE) {
+            LargeTextBox.call(this, x, y, size, size, "0");
+            
+        } else {
+            TextBox.call(this, x, y, size, size, "0");
+        }
     }
 
     // Inherits properties from TextBox.
@@ -618,13 +631,116 @@ function HammingCoderCanvas(canvasID) {
 
     function CodeWordGenerator(x, y, width, height, text) {
         LargeTextBox.call(this, x, y, width, height, text);
+
+        this.ioWidth = 30;
+        this.ioHeight = 20;
+        this.gateSize = 40;
+        this.offset = 150;
+        this.origin = {x: 1, y: 1};
+
+        this.circuitWidth = this.ioWidth + this.offset;
+        this.circuitHeight = this.origin.y + this.ioHeight * 11.5;
     }
 
     CodeWordGenerator.prototype = Object.create(LargeTextBox.prototype);
     CodeWordGenerator.prototype.constructor = CodeWordGenerator;
 
     CodeWordGenerator.prototype.drawCircuit = function() {
+        let ioWidth = this.ioWidth;
+        let ioHeight = this.ioHeight;
+        let gateSize = this.gateSize;
+        let offset = this.offset;
+        let origin = this.origin;
 
+        let lineOrigin = origin.x + ioWidth;
+
+        console.log(origin);
+                
+        let inputs = ["c4", "c2", "c1", "d7", "d6", "d5", "d3"];
+        let inputsSorted = ["d7", "d6", "d5", "c4", "d3", "c2", "c1"];
+        
+        for (let i = 0, j = 0; i < 8; i++, j++) {
+            let factor = 1.5;
+            let pos = {x: origin.x, y: origin.y + ioHeight * i * factor};
+            let pos2 = {x: origin.x, y: origin.y + ioHeight * j * factor + 15};
+            
+            drawRect(pos.x, pos.y, ioWidth, ioHeight, inputs[j]);
+            drawRect(pos2.x + offset, pos2.y, ioWidth, ioHeight, inputsSorted[j]);
+            
+            if (i == 2) i++;
+        }
+        
+        let h = origin.y + ioHeight / 2;
+        let lastY = 0.7;
+        let lastYDec = 0.08;
+        
+        let h4 = h;
+        context.beginPath();
+        context.moveTo(lineOrigin, h4);
+        context.lineTo(lineOrigin + offset * lastY, h4);
+        context.lineTo(lineOrigin + offset * lastY, h4 + 104);
+        context.lineTo(offset, h4 + 104);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h2 = h + ioHeight * 1.5;
+        context.beginPath();
+        context.moveTo(lineOrigin, h2);
+        context.lineTo(lineOrigin + offset * lastY, h2);
+        context.lineTo(lineOrigin + offset * lastY, h2 + 135);
+        context.lineTo(offset, h2 + 135);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h1 = h + ioHeight * 3;
+        context.beginPath();
+        context.moveTo(lineOrigin, h1);
+        context.lineTo(lineOrigin + offset * lastY, h1);
+        context.lineTo(lineOrigin + offset * lastY, h1 + 135);
+        context.lineTo(offset, h1 + 135);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h7 = h + ioHeight * 6;
+        context.beginPath();
+        context.moveTo(lineOrigin, h7);
+        context.lineTo(lineOrigin + offset * lastY, h7);
+        context.lineTo(lineOrigin + offset * lastY, h7 - 106);
+        context.lineTo(offset, h7 - 106);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h6 = h + ioHeight * 7.5;
+        context.beginPath();
+        context.moveTo(lineOrigin, h6);
+        context.lineTo(lineOrigin + offset * lastY, h6);
+        context.lineTo(lineOrigin + offset * lastY, h6 - 106);
+        context.lineTo(offset, h6 - 106);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h5 = h + ioHeight * 9;
+        context.beginPath();
+        context.moveTo(lineOrigin, h5);
+        context.lineTo(lineOrigin + offset * lastY, h5);
+        context.lineTo(lineOrigin + offset * lastY, h5 - 106);
+        context.lineTo(offset, h5 - 106);
+        context.stroke();
+        
+        lastY -= lastYDec;
+        
+        let h3 = h + ioHeight * 10.5;
+        context.beginPath();
+        context.moveTo(lineOrigin, h3);
+        context.lineTo(lineOrigin + offset * lastY, h3);
+        context.lineTo(lineOrigin + offset * lastY, h3 - 75);
+        context.lineTo(offset, h3 - 75);
+        context.stroke();
     }
 
     // --------------------------------- ErrorGenerator ----------------------------------
@@ -639,25 +755,25 @@ function HammingCoderCanvas(canvasID) {
         this.origin = {x: 1, y: 10};
 
         this.circuitWidth = this.ioWidth * 2 + this.gateSize + this.offset * 2;
-        this.circuitHeight = this.origin.y + this.ioHeight * 6 * 3.5 + this.ioHeight * 1.25;
+        this.circuitHeight = this.origin.y + this.ioHeight * 6 * 3 + this.ioHeight * 1.25;
     }
 
     ErrorGenerator.prototype = Object.create(LargeTextBox.prototype);
     ErrorGenerator.prototype.constructor = ErrorGenerator;
 
     ErrorGenerator.prototype.drawCircuit = function() {
-        let ioWidth = 30;
-        let ioHeight = 20;
-        let gateSize = 42;
-        let offset = 100;
-        let origin = {x: 1, y: 1};
+        let ioWidth = this.ioWidth;
+        let ioHeight = this.ioHeight;
+        let gateSize = this.gateSize;
+        let offset = this.offset;
+        let origin = this.origin;
             
         let lineOrigin = origin.x + ioWidth;
         
         let labels = ["c1", "c2", "d3", "c4", "d5", "d6", "d7"];
         
         for (let i = 0; i < 7; i++) {
-            let heightUpper = origin.y + ioHeight * i * 3.5;
+            let heightUpper = origin.y + ioHeight * i * 3;
             let heightLower = heightUpper + ioHeight * 1.25;
             
             drawRect(origin.x, heightUpper, ioWidth, ioHeight, labels[i]);
@@ -693,15 +809,136 @@ function HammingCoderCanvas(canvasID) {
 
     function Correction(x, y, width, height, text) {
         LargeTextBox.call(this, x, y, width, height, text);
+
+        this.ioWidth = 30;
+        this.ioHeight = 20;
+        this.xorSize = 40;
+        this.offset = 100;
+        this.origin = {x: 1, y: 1};
+
+        this.circuitWidth = 450;
+        this.circuitHeight = 360;
     }
 
     Correction.prototype = Object.create(LargeTextBox.prototype);
     Correction.prototype.constructor = Correction;
 
     Correction.prototype.drawCircuit = function() {
+        let ioWidth = this.ioWidth;
+        let ioHeight = this.ioHeight;
+        let xorSize = this.xorSize;
+        let offset = this.offset;
+        let origin = this.origin;
 
+        let lineOrigin = origin.x + ioWidth + 30;
+        let andYOffset = origin.y + ioHeight * 1.5 * 2 - xorSize * 0.5;
+
+        // inputs 1
+        let syndrome1 = {x: origin.x, y: origin.y};
+        drawRect(syndrome1.x, syndrome1.y, ioWidth, ioHeight, "s4");
+        
+        let inputs = ["s4", "s2", "s1"];
+        
+        let nots = [];
+        for (let i = 0; i < 3; i++) {
+            let pos = {x: origin.x, y: origin.y + ioHeight * 1.5 * i};
+            let xTopRight = lineOrigin + offset * 0.42 + offset * 0.13 * (3 - i);
+            let xTopLeft = 0.22 * offset - offset * 0.2 * i; 
+            
+            drawRect(pos.x, pos.y, ioWidth, ioHeight, inputs[i]);
+            
+            context.beginPath();
+            context.moveTo(pos.x + ioWidth, pos.y + ioHeight / 2);
+            context.lineTo(xTopRight, pos.y + ioHeight / 2);
+            context.lineTo(xTopRight, origin.y + ioHeight * 8 + xorSize * 0.75 + andYOffset);
+            context.stroke();
+            
+            context.beginPath();
+            for (let j = 0; j < 4; j++) {
+                let quarterY = origin.y + 0.5 * ioHeight * (5 * j + 1) + andYOffset + xorSize * (i + 1) / 4;
+
+                if (j == i + 1) {
+                    context.beginPath();
+                    context.moveTo(lineOrigin + offset, quarterY);
+                    context.lineTo(lineOrigin + xTopLeft, quarterY);
+                    context.lineTo(lineOrigin + xTopLeft, pos.y + ioHeight * 0.5);
+                    context.stroke();
+                    drawDot(lineOrigin + xTopLeft, pos.y + ioHeight * 0.5);
+
+                    nots.push({x: (lineOrigin * 2 + xTopLeft + offset * 0.42 + offset * 0.13) / 2, y: quarterY});
+                    continue;
+                }
+
+                context.beginPath();
+                context.moveTo(xTopRight, quarterY);
+                drawDot(xTopRight, quarterY);
+                context.lineTo(lineOrigin + offset, quarterY);
+                context.stroke();
+            }
+        }
+        
+        for (let i = 0; i < nots.length; i++) {
+            let notPos = nots[i];
+            let notSize = 14;
+            drawBox(notPos.x - notSize * 0.5, notPos.y - notSize * 0.5, notSize, "1", true);
+        }
+
+        let outputs = ["d7", "d6", "d5", "d3"];
+        let in2Height = origin.y + ioHeight * 3.5 * 2.5 + xorSize * 2;
+        
+        for (let i = 0; i < 4; i++) {
+            let and = {x: lineOrigin + offset, y: origin.y + ioHeight * i * 2.5 + ioHeight / 2 + andYOffset};
+            drawBox(and.x, and.y, xorSize, "&");
+
+            let xorHeight = ioHeight * i * 2.5 + xorSize / 2 + andYOffset;
+            let xor = {x: lineOrigin + xorSize + offset * 2, y: origin.y + xorHeight};
+            drawBox(xor.x, xor.y, xorSize, "=1");
+
+            let out = {x: lineOrigin + xorSize + offset * 3.25, y: xorHeight + ioHeight / 2};
+            drawRect(out.x, out.y, ioWidth, ioHeight, outputs[i]);
+            
+            context.beginPath();
+            context.moveTo(and.x + xorSize, and.y + xorSize / 2);
+            context.lineTo(and.x + xorSize + offset, and.y + xorSize / 2);
+            context.stroke();
+
+            // andToOut
+            context.beginPath();
+            context.moveTo(lineOrigin + xorSize + offset * 2 + xorSize, origin.y + xorHeight + xorSize / 2);
+            context.lineTo(lineOrigin + xorSize + offset * 3.25, origin.y + xorHeight + xorSize / 2);
+            context.stroke();
+        }
+            
+        // inputs 2
+        for (let i = 0; i < 4; i++) {
+            let h = in2Height + ioHeight * 1.5 * i;
+            let smallOffset = offset * 0.25;
+            let x1 = lineOrigin + offset + xorSize + smallOffset;;
+            let x2 = x1 + offset - smallOffset * 2;
+
+            drawRect(origin.x, h, ioWidth, ioHeight * 1, outputs[i]);
+
+            context.beginPath();
+            context.moveTo(origin.x + ioWidth, h + ioHeight / 2);
+            context.lineTo(x1, h + ioHeight / 2);
+            context.stroke();
+
+            let currentPoint = {x: x1 + (x2 - x1) * i * 1 / 3, y: h + ioHeight / 2};
+            let lineHeight = origin.y + ioHeight * i * 2.5 + xorSize / 2 + andYOffset + xorSize * 2 / 3;
+
+            context.beginPath();
+            context.moveTo(x1, h + ioHeight / 2);
+            context.lineTo(currentPoint.x , currentPoint.y);
+            context.stroke();
+
+            context.beginPath();
+            context.moveTo(x1, h + ioHeight / 2);
+            context.lineTo(currentPoint.x, currentPoint.y);
+            context.lineTo(currentPoint.x, lineHeight);
+            context.lineTo(lineOrigin + offset * 2 + xorSize, lineHeight);
+            context.stroke();
+        }
     }
-    
 
     // ================================= Pipeline ==================================
 
@@ -935,9 +1172,10 @@ function HammingCoderCanvas(canvasID) {
     canvas.addEventListener("dblclick", mouseDoubleClicked, false);
 
     // encoder
-    var firstBoxset = new BinaryBoxset("firstBoxset", 1, 15, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
+    var origin = {x: 1, y: 1};
+    var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
-    var pos1 = {x: 50, y: 100};
+    var pos1 = {x: 50, y: origin.y + 85};
     var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
 
     var boxsetLen = BoxSize.SMALL * 4;
@@ -1061,9 +1299,11 @@ function HammingCoderCanvas(canvasID) {
 
 </head>
 <body>
-    <div style="position:relative; display:inline-block">
-        <canvas id="canvas" width="900" height="800" style="border:1px solid"></canvas><br>
-    </div>
+    <p align="center">
+        <div style="position:relative; display:inline-block">
+            <canvas id="canvas" width="885" height="766" style="border:1px solid"></canvas><br>
+        </div>
+    </p>
     <script>
         var demo = new HammingCoderCanvas("canvas");
         demo.state.evenParity = true;
