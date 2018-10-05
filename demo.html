@@ -18,7 +18,7 @@ function HammingCoderCanvas(canvasID) {
     Holds all graphical objects which are to be drawn onto the canvas.
     Every object must have a draw() method which will be called upon
     drawing.
-    */
+    */  
     var objects = [];
 
     /*
@@ -132,8 +132,27 @@ function HammingCoderCanvas(canvasID) {
 
     // -------------------------------- Misc ------------------------------------
 
+    function reposition() {
+        let w = 885;
+        let h = 766;
+
+        context.translate(canvas.width / 2, canvas.height / 2);
+
+        let scaleX = canvas.width / w;
+        let scaleY = canvas.height / h;
+
+        if (scaleX < 1 || scaleY < 1) {
+            let min = scaleX < scaleY ? scaleX : scaleY;
+            context.scale(min, min);
+        }
+        
+        context.translate(-w / 2, -h / 2);
+    }
+
     function redraw() {
+        context.save();
         simulate();
+        reposition();
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -144,6 +163,7 @@ function HammingCoderCanvas(canvasID) {
         if (state.activeCircuit != null) {
             overlayCircuit();
         }
+        context.restore();
     }
     this.redraw = redraw;
 
@@ -160,7 +180,9 @@ function HammingCoderCanvas(canvasID) {
     function mouseClicked(e) {
         let m = getMouse(e);
 
-        state.activeCircuit = null;
+        if (state.activeCircuit != null) {
+            state.activeCircuit = null;
+        }
 
         for (let [key, value] of boxsets) {
             let box = value.getBinaryBoxIndexForPoint(m.x, m.y);
@@ -843,7 +865,7 @@ function HammingCoderCanvas(canvasID) {
         for (let i = 0; i < 3; i++) {
             let pos = {x: origin.x, y: origin.y + ioHeight * 1.5 * i};
             let xTopRight = lineOrigin + offset * 0.42 + offset * 0.13 * (3 - i);
-            let xTopLeft = 0.22 * offset - offset * 0.2 * i; 
+            let xTopLeft = 0.1 * offset - offset * 0.15 * i; 
             
             drawRect(pos.x, pos.y, ioWidth, ioHeight, inputs[i]);
             
@@ -1090,6 +1112,9 @@ function HammingCoderCanvas(canvasID) {
 
         let decoderLower = boxsets.get('decoderLower');
         decoderLower.setBits(newParityBits);
+
+        let last = boxsets.get('lastBoxset');
+        //correctError()
     }
 
     // ------------------------------- Calculations -------------------------------
@@ -1299,11 +1324,9 @@ function HammingCoderCanvas(canvasID) {
 
 </head>
 <body>
-    <p align="center">
-        <div style="position:relative; display:inline-block">
-            <canvas id="canvas" width="885" height="766" style="border:1px solid"></canvas><br>
-        </div>
-    </p>
+    <div align="center" style="position:relative; display:inline-block">
+        <canvas id="canvas" width="900" height="800" style="border:1px solid"></canvas><br>
+    </div>
     <script>
         var demo = new HammingCoderCanvas("canvas");
         demo.state.evenParity = true;
@@ -1314,6 +1337,5 @@ function HammingCoderCanvas(canvasID) {
         <input type="radio" name="parity" onclick="demo.state.evenParity = true; demo.redraw();" value="Even" checked>Even<br>
         <input type="radio" name="parity" onclick="demo.state.evenParity = false; demo.redraw();" value="Odd">Odd<br>
     </form>
-
 </body>
 </html>
