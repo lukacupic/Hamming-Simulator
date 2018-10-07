@@ -904,6 +904,7 @@ function HammingCoderCanvas(canvasID) {
 
         let sindromeBits = boxsets.get('sinGen').getBits();
         let dataBits = boxsets.get('decoderLower').getBits();
+        let outputBits = boxsets.get('lastBoxset').getBits();
         
         let nots = [];
         for (let i = 0; i < 3; i++) {
@@ -955,7 +956,7 @@ function HammingCoderCanvas(canvasID) {
             drawBox(xor.x, xor.y, xorSize, "=1");
 
             let out = {x: lineOrigin + xorSize + offset * 3.25, y: xorHeight + ioHeight / 2};
-            drawRect(out.x, out.y, ioWidth, ioHeight, "42", {name: outputs[i], dir: Direction.EAST});
+            drawRect(out.x, out.y, ioWidth, ioHeight, outputBits[i], {name: outputs[i], dir: Direction.EAST});
             
             context.beginPath();
             context.moveTo(and.x + xorSize, and.y + xorSize / 2);
@@ -976,7 +977,7 @@ function HammingCoderCanvas(canvasID) {
             let x1 = lineOrigin + offset + xorSize + smallOffset;;
             let x2 = x1 + offset - smallOffset * 2;
 
-            drawRect(origin.x, h, ioWidth, ioHeight * 1, "42", {name: outputs[i], dir: Direction.WEST});
+            drawRect(origin.x, h, ioWidth, ioHeight * 1, dataBits[i], {name: outputs[i], dir: Direction.WEST});
 
             context.beginPath();
             context.moveTo(origin.x + ioWidth, h + ioHeight / 2);
