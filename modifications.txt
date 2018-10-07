@@ -2,12 +2,6 @@
 
 6) dvoklik na sklopove prikazuje shemu i labele ulaza, ali ne i trenutne vrijednosti koje su na njih dovedene te što je generirano na izlazima - to bi trebalo biti vidljivo
 
-7) ako najprije napravim dvoklik na gornji Hammingov koder, pa ga maknem, pa napravim dvoklik na Generator kodne riječi, u shemi generatora s desne strane ulaza C1 se pojavi kružić, kao da je tamo invertor
-
-8) dvoklik na Generator pogreške također nakon nečega prije toga prikazuje neke fantomske linije, koje nestanu ako zatvorim Generator pogreške pa ga ponovno otvorim
-
-9) prvi dvoklik nakon toga na Generator sindroma čak nacrta nekakve debele linije ispod "zasivljenog" područja
-
 10) otvorena detaljna shema trebala bi se zatvarati tek na ponovni dvoklik (recimo na dio ekrana koji nije zasivljen) i koji nije u konfliktu s točkom 11) koja slijedi
 
 11) kad je otvoren zasivljeni prikaz nekog sklopa, ako postoje bitovi kojima korisnik može upravljati, klik na njih bi trebao također raditi; konkretno, ako je prikazan generator pogreške, korisnik može mijenjati one upravljačke bitove koji govore gdje treba invertirati bit, pa klik na te kućice bi to stvarno trebao i raditi, tako se ljudima može pokazati kako se taj bit vodi na xor i kako će se zbog toga okrenuti baš neki konkretan podatkovni bit koji trenutno ima neku vrijednost (koja se također vidi); dodatno, ako, dok je otvoreno nešto zasivljeno, korisnik klika na one ulazne bitove (gore lijevo), stanje se također treba preračunati i ako se nešto od podataka time promijeni u otvorenom zasivljenom sklopu, to se treba stvarno i vidjeti
@@ -23,5 +17,11 @@
 4) na ulaze donjeg hammingovog kodera isto dodajte labele, tako da je jasno da su sada ulazi D3, D5, D6 i D7 (i koji je gdje).
 
 5) uz izlaze čitavog sklopa također dodajte labele: D0, D1, D2 i D3.
+
+7) ako najprije napravim dvoklik na gornji Hammingov koder, pa ga maknem, pa napravim dvoklik na Generator kodne riječi, u shemi generatora s desne strane ulaza C1 se pojavi kružić, kao da je tamo invertor
+
+8) dvoklik na Generator pogreške također nakon nečega prije toga prikazuje neke fantomske linije, koje nestanu ako zatvorim Generator pogreške pa ga ponovno otvorim
+
+9) prvi dvoklik nakon toga na Generator sindroma čak nacrta nekakve debele linije ispod "zasivljenog" područja
 
 13) na glavnoj shemi, ja bih uz desni rub sklopa za ispravljanje prikazao vertikalno izlazne bitove i dao im labele d3',d5',d6' i d7', a uz same izlaze čitavog sklopa, sukladno točki 5) stavio bih labele koje odgovaraju labelama podataka koje čitav sklop dobiva na ulazima gore lijevo
