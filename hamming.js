@@ -66,6 +66,7 @@ function HammingCoderCanvas(canvasID) {
     // ------------------------- Circuit Overlay -----------------------------------
 
     function drawRect(x, y, w, h, symbol, negate) {
+
         context.rect(x - 0.5, y - 0.5, w, h);
         context.strokeStyle = "black";
         context.stroke();
@@ -145,7 +146,6 @@ function HammingCoderCanvas(canvasID) {
     }
 
     function redraw() {
-        context.save();
         simulate();
         //reposition();
 
@@ -158,7 +158,6 @@ function HammingCoderCanvas(canvasID) {
         if (state.activeCircuit != null) {
             overlayCircuit();
         }
-        context.restore();
     }
     this.redraw = redraw;
 
@@ -209,6 +208,7 @@ function HammingCoderCanvas(canvasID) {
             break;
         }
         redraw();
+        redraw(); // This fixes the "phantom lines bug" but I have no idea why...
     }
     this.mouseDoubleClicked = mouseDoubleClicked;
 
@@ -678,8 +678,6 @@ function HammingCoderCanvas(canvasID) {
         let origin = this.origin;
 
         let lineOrigin = origin.x + ioWidth;
-
-        console.log(origin);
                 
         let inputs = ["c4", "c2", "c1", "d7", "d6", "d5", "d3"];
         let inputsSorted = ["d7", "d6", "d5", "c4", "d3", "c2", "c1"];
@@ -694,7 +692,7 @@ function HammingCoderCanvas(canvasID) {
             
             if (i == 2) i++;
         }
-        
+
         let h = origin.y + ioHeight / 2;
         let lastY = 0.7;
         let lastYDec = 0.08;
