@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<script>
 function HammingCoderCanvas(canvasID) {
     /*
     The canvas object.
@@ -152,7 +147,7 @@ function HammingCoderCanvas(canvasID) {
     function redraw() {
         context.save();
         simulate();
-        reposition();
+        //reposition();
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -254,8 +249,10 @@ function HammingCoderCanvas(canvasID) {
         context.textBaseline = "middle";
         context.font = this.font != undefined ? this.font : Font.SMALL;
 
+        let center = this.getCenter();
+
         if (!this.isText) {
-            context.fillText(this.text, this.x + (this.width / 2), this.y + (this.height / 2));
+            context.fillText(this.text, center.x, center.y);
             return;
         }
 
@@ -264,7 +261,7 @@ function HammingCoderCanvas(canvasID) {
         let lines = this.text.split("\n");
 
         for (let i = 0 ; i < lines.length; i++) {
-            context.fillText(lines[i], this.x + (this.width / 2), this.y + (this.height / 2) + height * i - height / 2);
+            context.fillText(lines[i], center.x, center.y + height * i - height / 2);
         }
     };
 
@@ -275,7 +272,11 @@ function HammingCoderCanvas(canvasID) {
 
     // Gets the central coordinate of this text box
     TextBox.prototype.getCenter = function() {
-        return {x: ~~(this.x + this.width / 2), y: ~~(this.y + this.height / 2)};
+        return {x: (this.x + this.width / 2), y: (this.y + this.height / 2)};
+    }
+
+    TextBox.prototype.getSize = function() {
+        return {width: this.width, height: this.height};
     }
 
     // -------------------------------- LargeTextBox --------------------------------
@@ -386,27 +387,29 @@ function HammingCoderCanvas(canvasID) {
 
     // Sets the information for this binary boxset (i.e. the information about
     // the bits of the boxset) at the given location (specified by Direction).
-    BinaryBoxset.prototype.setInfo = function(info, location) {
+    BinaryBoxset.prototype.setInfo = function(info, location, font) {
         this.info = info;
         this.location = location;
+        this.font = font;
     }
 
     // Draws the informataion of this binary boxset.
     BinaryBoxset.prototype.drawInfo = function() {
         context.fillStyle = "black";
-        context.font = Font.SMALL;
+        context.font = this.font != undefined ? this.font : Font.SMALL;
 
         for (let i = 0; i < this.boxes.length; i++) {
             let currentBox = this.boxes[i];
 
+            let boxSize = currentBox.getSize();
             let x = currentBox.getCenter().x;
             let y = currentBox.getCenter().y;
 
             if (this.orientation == Orientation.HORIZONTAL) {
-                y += this.location * 0.80 * this.size;
+                y += this.location * boxSize.height * 0.8;
 
             } else {
-                x += this.location * 0.90 * this.size;
+                x += this.location * boxSize.width * 0.8;
             }
             
             context.fillText(this.info[i], x, y);
@@ -524,9 +527,9 @@ function HammingCoderCanvas(canvasID) {
         drawBox(230, 120, 30, "c0", false);
     }
 
-    // --------------------------------- SyndromeGenerator ----------------------------------
+    // --------------------------------- SindromeGenerator ----------------------------------
 
-    function SyndromeGenerator(x, y, width, height, text) {
+    function SindromeGenerator(x, y, width, height, text) {
         LargeTextBox.call(this, x, y, width, height, text);
 
         this.ioWidth = 30;
@@ -539,10 +542,10 @@ function HammingCoderCanvas(canvasID) {
         this.circuitHeight = this.origin.y + this.ioHeight * 10;
     }
 
-    SyndromeGenerator.prototype = Object.create(LargeTextBox.prototype);
-    SyndromeGenerator.prototype.constructor = SyndromeGenerator;
+    SindromeGenerator.prototype = Object.create(LargeTextBox.prototype);
+    SindromeGenerator.prototype.constructor = SindromeGenerator;
 
-    SyndromeGenerator.prototype.drawCircuit = function() {
+    SindromeGenerator.prototype.drawCircuit = function() {
         let ioWidth = this.ioWidth;
         let ioHeight = this.ioHeight;
         let gateSize = this.gateSize;
@@ -856,8 +859,8 @@ function HammingCoderCanvas(canvasID) {
         let andYOffset = origin.y + ioHeight * 1.5 * 2 - xorSize * 0.5;
 
         // inputs 1
-        let syndrome1 = {x: origin.x, y: origin.y};
-        drawRect(syndrome1.x, syndrome1.y, ioWidth, ioHeight, "s4");
+        let Sindrome1 = {x: origin.x, y: origin.y};
+        drawRect(Sindrome1.x, Sindrome1.y, ioWidth, ioHeight, "s4");
         
         let inputs = ["s4", "s2", "s1"];
         
@@ -1111,10 +1114,24 @@ function HammingCoderCanvas(canvasID) {
         sinGen.setBits(binaryXor(decoderUpper.getBits(), decoderCentral.getBits()));
 
         let decoderLower = boxsets.get('decoderLower');
-        decoderLower.setBits(newParityBits);
+        decoderLower.setBits(newDataBits);
+
+        let errIndex = binaryToDecimal(reverse(sinGen.getBits()));
+        let fixed = fixError(propagatedBits, errIndex);
+
+        let dataBitsOut = separateBits(fixed).dataBits;
+
+        let preLast = boxsets.get('preLastBoxset');
+        preLast.setBits(dataBitsOut);
 
         let last = boxsets.get('lastBoxset');
-        //correctError()
+        last.setBits(dataBitsOut)
+    }
+
+    function fixError(bits, index) {
+        if (index == 0) return bits;
+        let replacement = bits[index - 1] == "0" ? "1" : "0";
+        return bits.replaceAt(index - 1, replacement);
     }
 
     // ------------------------------- Calculations -------------------------------
@@ -1193,15 +1210,35 @@ function HammingCoderCanvas(canvasID) {
         return /^[a-zčćđšžA-ZČĆĐŠŽ \n]+$/.test(str);
     }
 
+    function reverse(s){
+        return s.split("").reverse().join("");
+    }
+
+    String.prototype.replaceAt = function(index, replacement) {
+        return this.substr(0, index) + replacement + this.substr(index + replacement.length);
+    }
+
+    function binaryToDecimal(binary) {
+        let dec = 0;
+        for (let i = 0; i < binary.length; i++) {
+            dec += Number(binary[i] * Math.pow(2, binary.length - i - 1));
+        }
+        return dec;
+    }
+
     canvas.addEventListener("click", mouseClicked, false);
     canvas.addEventListener("dblclick", mouseDoubleClicked, false);
 
     // encoder
     var origin = {x: 1, y: 1};
-    var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
-    var pos1 = {x: 50, y: origin.y + 85};
-    var pipe1 = new ClosedPipe(pos1.x, pos1.y, 200, Orientation.HORIZONTAL);
+    var dummyBoxset = new BinaryBoxset("lastBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
+
+    var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
+    firstBoxset.setInfo(["D0", "D1", "D2", "D3"], Direction.EAST, Font.LARGE);
+
+    var pos1 = {x: BoxSize.LARGE, y: origin.y + 85};
+    var pipe1 = new ClosedPipe(pos1.x, pos1.y, 175, Orientation.HORIZONTAL);
 
     var boxsetLen = BoxSize.SMALL * 4;
     var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
@@ -1217,23 +1254,27 @@ function HammingCoderCanvas(canvasID) {
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
     pipe3.setBoxset(4, "encoderLower");
-    pipe3.boxset.setInfo(["D3", "D5", "D6", "D7"], Direction.NORTH);
+    pipe3.boxset.setInfo(["D0", "D1", "D2", "D3"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
     var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
     pipe4.setBoxset(3, "encoderUpper");
     pipe4.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
 
-    var genSize = {x: 75, y: 150};
+    var codeGenBoxsetLen = BoxSize.SMALL * 7;
+    var genSize = {x: 75, y: codeGenBoxsetLen - border * 6};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
     var gen = new CodeWordGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
 
+    var codeGenBoxset = new BinaryBoxset("codeGenBoxset", genPos.x + genSize.x - 1, genPos.y, 7, BoxSize.SMALL, Orientation.VERTICAL);
+    codeGenBoxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.EAST);
+
     // error generator
     var pos6 = {x: pos5.x + pipe5.length - BoxSize.SMALL, y: pos5.y + BoxSize.SMALL};
-    var pipe6 = new HalfOpenPipe(pos6.x, pos6.y, 115, Orientation.VERTICAL, Direction.NORTH);
+    var pipe6 = new HalfOpenPipe(pos6.x, pos6.y, 130, Orientation.VERTICAL, Direction.NORTH);
 
     var pos7 = {x: (pos1.x * 2 + pos6.x + BoxSize.SMALL - border) / 2, y: pos5.y + pipe6.length};
     var pipe7 = new HalfOpenPipe(pos7.x, pos7.y, pos6.x - pos7.x + border, Orientation.HORIZONTAL, Direction.EAST);
@@ -1274,28 +1315,30 @@ function HammingCoderCanvas(canvasID) {
 
     var boxsetLen = BoxSize.SMALL * 4;
     var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
-    var boxset1 = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
 
-    var coderSize = boxsetLen - border * 3;
-    var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
-    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+    var coderSize = {x:  boxsetLen - border * 3 + 30, y: boxsetLen - border * 3};
+    var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize.y / 2};
+    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize.x, coderSize.y, "Hammingov\nkoder");
+
+    var boxset1 = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+    boxset1.setInfo(["D3", "D5", "D6", "D7"], Direction.EAST);
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 170, Orientation.VERTICAL, Direction.NORTH);
 
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length / 2 - BoxSize.SMALL};
-    var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 250, Orientation.HORIZONTAL, Direction.WEST);
+    var pipe3 = new HalfOpenPipe(pos3.x, pos3.y, 280, Orientation.HORIZONTAL, Direction.WEST);
     pipe3.setBoxset(3, "decoderCentral");
     pipe3.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
 
-    var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
+    var pos4 = {x: coderPos.x + coderSize.x - border, y: pos1.y};
     var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
     pipe4.setBoxset(3, "decoderUpper");
     pipe4.boxset.setInfo(["C1'", "C2'", "C4'"], Direction.NORTH);
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length / 2) / 2 - genSize.y / 2};
-    var gen = new SyndromeGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
+    var gen = new SindromeGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 105, Orientation.HORIZONTAL);
@@ -1308,34 +1351,19 @@ function HammingCoderCanvas(canvasID) {
     pipe6.boxset.setInfo(["D3", "D5", "D6", "D7"], Direction.NORTH);
 
     var corrSize = {x: 85, y: 200};
-    var corrPos = {x: pos6.x + pipe6.length - border, y: (pos5.y + pos6.y) / 2 - corrSize.y / 2 + BoxSize.SMALL / 2};
-    var corr = new Correction(corrPos.x, corrPos.y, corrSize.x, corrSize.y, "Ispravljanje");
+    var corrPos = {x: pos6.x + pipe6.length - border * 2, y: (pos5.y + pos6.y) / 2 - corrSize.y / 2 + BoxSize.SMALL / 2};
+    var corr = new Correction(corrPos.x, corrPos.y + 3, corrSize.x, corrSize.y - 3, "Ispravljanje");
 
     var pos7 = {x: corrPos.x + corrSize.x - border, y: corrPos.y + corrSize.y / 2 - BoxSize.SMALL / 2};
-    var pipe7 = new ClosedPipe(pos7.x, pos7.y, 100, Orientation.HORIZONTAL);
+    var pipe7 = new ClosedPipe(pos7.x, pos7.y, 125, Orientation.HORIZONTAL);
+
+    var preLastBoxset = new BinaryBoxset("preLastBoxset", corrPos.x + corrSize.x - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
+    preLastBoxset.setInfo(["D3'", "D5'", "D6'", "D7'"], Direction.EAST, Font.LARGE);
 
     var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
+    lastBoxset.setInfo(["D0", "D1", "D2", "D3"], Direction.EAST, Font.LARGE);
 
     redraw();
     
     return this;
 }
-</script>
-
-</head>
-<body>
-    <div align="center" style="position:relative; display:inline-block">
-        <canvas id="canvas" width="900" height="800" style="border:1px solid"></canvas><br>
-    </div>
-    <script>
-        var demo = new HammingCoderCanvas("canvas");
-        demo.state.evenParity = true;
-    </script>
-    <button type="button" onclick="demo.reset();">Resetiraj</button><br><br>
-
-    <form>
-        <input type="radio" name="parity" onclick="demo.state.evenParity = true; demo.redraw();" value="Even" checked>Even<br>
-        <input type="radio" name="parity" onclick="demo.state.evenParity = false; demo.redraw();" value="Odd">Odd<br>
-    </form>
-</body>
-</html>

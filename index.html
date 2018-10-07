@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-	<title>Hamming Simulator v2.0</title>
-	<style type="text/css">
-		canvas {
-			border: 1px solid black;
-		}
-
-		body {
-			margin: 0;
-		}
-	</style>
+<meta charset="utf-8">
+<script type="text/javascript" src="hamming.js"></script>
 </head>
-<body style="background-color: rgb(255, 255, 255)">
-	<p align="center">
-		<canvas width="1000" height="900"></canvas>
-    </p>
-	<script src="canvas.js"></script>
+<body>
+    <div align="center" style="position:relative; display:inline-block">
+        <canvas id="canvas" width="920" height="800" style="border:1px solid"></canvas><br>
+    </div>
+    <script>
+        var demo = new HammingCoderCanvas("canvas");
+        demo.state.evenParity = true;
+    </script>
+    <button type="button" onclick="demo.reset();">Resetiraj</button><br><br>
+
+    <form>
+        <input type="radio" name="parity" onclick="demo.state.evenParity = true; demo.redraw();" value="Even" checked>Even<br>
+        <input type="radio" name="parity" onclick="demo.state.evenParity = false; demo.redraw();" value="Odd">Odd<br>
+    </form>
 </body>
 </html>
