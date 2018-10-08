@@ -903,8 +903,8 @@ function HammingCoderCanvas(canvasID) {
         let inputs = ["s4", "s2", "s1"];
 
         let sindromeBits = boxsets.get('sinGen').getBits();
-        let dataBits = boxsets.get('decoderLower').getBits();
-        let outputBits = boxsets.get('lastBoxset').getBits();
+        let dataBits = reverse(boxsets.get('decoderLower').getBits());
+        let outputBits = reverse(boxsets.get('lastBoxset').getBits());
         
         let nots = [];
         for (let i = 0; i < 3; i++) {
@@ -1017,15 +1017,22 @@ function HammingCoderCanvas(canvasID) {
     */
     var pipeExtra = 3;
 
-    function OpenPipe(x, y, length, orientation) {
+    function OpenPipe(x, y, length, orientation, showArrow) {
         this.x = ~~x
         this.y = ~~y;
         this.length = length;
         this.orientation = orientation;
         this.topLeft = {x: this.x, y: this.y};
 
+        let triangle;
+        this.reducedLength = this.length;
+        if (showArrow === true) {
+            triangle = new Triangle(this.topLeft.x, this.topLeft.y, this.length, this.orientation);
+            this.reducedLength -= triangle.size;
+        }
+
         if (this.orientation == Orientation.HORIZONTAL) {
-            new TextBox(this.topLeft.x, this.topLeft.y, this.length, BoxSize.SMALL, "");
+            new TextBox(this.topLeft.x, this.topLeft.y, this.reducedLength, BoxSize.SMALL, "");
 
             // "cover-up" rect values
             this.coverupX = this.topLeft.x - pipeExtra;
@@ -1034,7 +1041,7 @@ function HammingCoderCanvas(canvasID) {
             this.coverupH = BoxSize.SMALL - 2 * border;
 
         } else if (this.orientation == Orientation.VERTICAL) {
-            new TextBox(this.topLeft.x, this.topLeft.y, BoxSize.SMALL, this.length, "");
+            new TextBox(this.topLeft.x, this.topLeft.y, BoxSize.SMALL, this.reducedLength, "");
 
             // "cover-up" rect values
             this.coverupX = this.topLeft.x + border;
@@ -1046,6 +1053,11 @@ function HammingCoderCanvas(canvasID) {
         // push 'this' AFTER creating the TextBox; this way the "cover-up" rect
         // will go over the TexBox's borders
         objects.push(this);
+
+        // push the triangle after pipe so it's drawn on top of it
+        if (showArrow) {
+            triangle.push();
+        }
     }
 
     OpenPipe.prototype.draw = function() {
@@ -1057,7 +1069,7 @@ function HammingCoderCanvas(canvasID) {
         let x = this.x;
         let y = this.y;
 
-        let offset = this.length / 2 - BoxSize.SMALL * size / 2;
+        let offset = this.reducedLength / 2 - BoxSize.SMALL * size / 2;
         if(this.orientation == Orientation.HORIZONTAL) x += offset;
         else if(this.orientation == Orientation.VERTICAL) y += offset;
 
@@ -1070,8 +1082,8 @@ function HammingCoderCanvas(canvasID) {
 
     // ------------------------------- HalfOpenPipe --------------------------------
 
-    function HalfOpenPipe(x, y, length, orientation, direction) {
-        OpenPipe.call(this, x, y, length, orientation, direction);
+    function HalfOpenPipe(x, y, length, orientation, direction, showArrow) {
+        OpenPipe.call(this, x, y, length, orientation, showArrow);
 
         if (orientation == Orientation.HORIZONTAL) {
             this.coverupW /= 2;
@@ -1094,8 +1106,8 @@ function HammingCoderCanvas(canvasID) {
 
     // -------------------------------- ClosedPipe ---------------------------------
 
-    function ClosedPipe(x, y, length, orientation) {
-        OpenPipe.call(this, x, y, length, orientation);
+    function ClosedPipe(x, y, length, orientation, showArrow) {
+        OpenPipe.call(this, x, y, length, orientation, showArrow);
     }
 
     ClosedPipe.prototype = Object.create(OpenPipe.prototype);
@@ -1103,6 +1115,40 @@ function HammingCoderCanvas(canvasID) {
 
     ClosedPipe.prototype.draw = function() {
         // do nothing
+    }
+
+    // --------------------------------- Triangle -----------------------------------
+
+    function Triangle(x, y, length, orientation) {
+        this.x = x;
+        this.y = y;
+        this.length = length;
+        this.orientation = Orientation.HORIZONTAL;
+        this.size = BoxSize.SMALL * 0.85;
+    }
+
+    Triangle.prototype.constructor = Triangle;
+
+    Triangle.prototype.draw = function() {
+        if (this.orientation == Orientation.HORIZONTAL) {
+            let h = 5;
+            let origin = {x: this.x + this.length - this.size, y: this.y};
+
+            context.beginPath();
+            context.moveTo(origin.x, origin.y);
+            context.lineTo(origin.x, origin.y - h);
+            context.lineTo(origin.x + this.size, origin.y + BoxSize.SMALL / 2);
+            context.lineTo(origin.x, origin.y + BoxSize.SMALL + h);
+            context.lineTo(origin.x, origin.y + BoxSize.SMALL);
+            context.stroke();
+
+        } else {
+
+        }
+    }
+
+    Triangle.prototype.push = function() {
+        objects.push(this);
     }
 
 
@@ -1303,13 +1349,13 @@ function HammingCoderCanvas(canvasID) {
     pipe3.boxset.setInfo(["D0", "D1", "D2", "D3"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
-    var pipe4 = new ClosedPipe(pos4.x, pos4.y, 105, Orientation.HORIZONTAL);
+    var pipe4 = new HalfOpenPipe(pos4.x, pos4.y, 135, Orientation.HORIZONTAL, Direction.EAST, true);
     pipe4.setBoxset(3, "encoderUpper");
     pipe4.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
 
     var codeGenBoxsetLen = BoxSize.SMALL * 7;
     var genSize = {x: 100, y: codeGenBoxsetLen - border * 6};
-    var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
+    var genPos = {x: pos4.x + pipe4.length, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length) / 2 - genSize.y / 2};
     var gen = new CodeWordGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nkodne\nriječi");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
