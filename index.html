@@ -1,22 +1,30 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="utf-8">
-<script type="text/javascript" src="hamming.js"></script>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="hamming.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <title>Hamming Simulator v2.0</title>
 </head>
+
 <body>
-    <div align="center" style="position:relative; display:inline-block">
-        <canvas id="canvas" width="940" height="800" style="border:1px solid"></canvas><br>
+    <div style="text-align:center">
+        <form>
+            <input type="radio" name="parity" onclick="demo.state.evenParity = true; demo.redraw();" value="Even" checked>Parni paritet
+            <input type="radio" name="parity" onclick="demo.state.evenParity = false; demo.redraw();" value="Odd">Neparni paritet
+            <button type="button" onclick="demo.reset();">Resetiraj simulaciju</button>
+        </form>
     </div>
+
+    <p align="center">
+        <canvas id="canvas" width="940" height="800" style="border:1px solid"></canvas>
+        <br>
+    </p>
     <script>
         var demo = new HammingCoderCanvas("canvas");
         demo.state.evenParity = true;
     </script>
-    <button type="button" onclick="demo.reset();">Resetiraj</button><br><br>
-
-    <form>
-        <input type="radio" name="parity" onclick="demo.state.evenParity = true; demo.redraw();" value="Even" checked>Even<br>
-        <input type="radio" name="parity" onclick="demo.state.evenParity = false; demo.redraw();" value="Odd">Odd<br>
-    </form>
 </body>
+
 </html>

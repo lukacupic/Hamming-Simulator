@@ -76,11 +76,15 @@ function HammingCoderCanvas(canvasID) {
         if (label !== undefined) {
             drawLabel(x, y, w, h, label.name, label.dir);
         }
+
+        context.fillStyle = "white";
+        context.fillRect(x - 0.5, y - 0.5, w, h);
     
         context.rect(x - 0.5, y - 0.5, w, h);
         context.strokeStyle = "black";
         context.stroke();
 
+        context.fillStyle = "black";
         context.textAlign="center";
         context.textBaseline = "middle";
         context.font = "15px Calibri";
@@ -90,7 +94,7 @@ function HammingCoderCanvas(canvasID) {
             context.beginPath();
             var r = 2.8;
             context.arc(x + w + r , y + h / 2, r, 0, 2 * Math.PI);
-            context.stroke();
+            context.fill();
         }
     }
   
@@ -113,8 +117,8 @@ function HammingCoderCanvas(canvasID) {
 
         context.translate(canvas.width / 2, canvas.height / 2);
 
-        let factor = canvas.width * 0.5 / w;
-        context.scale(factor, factor);
+        //let factor = canvas.width * 0.5 / w;
+        context.scale(1.5, 1.5);
         context.translate(-w / 2, -h / 2);
 
         let circuitBorder = (w + h) / 2 * 0.1;
@@ -221,7 +225,7 @@ function HammingCoderCanvas(canvasID) {
             break;
         }
         redraw();
-        redraw(); // This fixes the "phantom lines bug" but I have no idea why...
+        //redraw(); // This fixes the "phantom lines bug" but I have no idea why...
     }
     this.mouseDoubleClicked = mouseDoubleClicked;
 
@@ -440,11 +444,12 @@ function HammingCoderCanvas(canvasID) {
 
     // --------------------------------- HammingCoder ----------------------------------
 
-    function HammingCoder(x, y, width, height, text) {
+    function HammingCoder(x, y, width, height, text, decoder) {
         LargeTextBox.call(this, x, y, width, height, text);
 
         this.circuitWidth = 290;
         this.circuitHeight = 155;
+        this.decoder = decoder;
     }
 
     HammingCoder.prototype = Object.create(LargeTextBox.prototype);
@@ -453,7 +458,7 @@ function HammingCoderCanvas(canvasID) {
     HammingCoder.prototype.drawCircuit = function() {
         context.translate(15, 0);
 
-        let dataBits = boxsets.get('encoderCoder').getBits();
+        let dataBits = boxsets.get(this.decoder ? 'decoderCoder' : 'encoderCoder').getBits();
 
         // draw inputs
         drawRect(0, 0, 30, 30, dataBits[0], {name: "d3", dir: Direction.WEST});
@@ -544,7 +549,7 @@ function HammingCoderCanvas(canvasID) {
         drawDot(50, 15);
 
         // draw outputs
-        let parityBits = boxsets.get('encoderUpper').getBits();
+        let parityBits = boxsets.get(this.decoder ? 'decoderLower' : 'encoderUpper').getBits();
         drawRect(230, 10, 30, 30, parityBits[0], {name: "c2", dir: Direction.EAST});
         drawRect(230, 65, 30, 30, parityBits[1], {name: "c1", dir: Direction.EAST});
         drawRect(230, 120, 30, 30, parityBits[2], {name: "c0", dir: Direction.EAST});
@@ -1002,7 +1007,7 @@ function HammingCoderCanvas(canvasID) {
 
         for (let i = 0; i < nots.length; i++) {
             let notPos = nots[i];
-            let notSize = 14;
+            let notSize = 16;
             drawBox(notPos.x - notSize * 0.5, notPos.y - notSize * 0.5, notSize, "1", true);
         }
     }
@@ -1104,6 +1109,10 @@ function HammingCoderCanvas(canvasID) {
     HalfOpenPipe.prototype = Object.create(OpenPipe.prototype);
     HalfOpenPipe.prototype.constructor = HalfOpenPipe;
 
+    ClosedPipe.prototype.draw = function() {
+        // do nothing
+    }
+
     // -------------------------------- ClosedPipe ---------------------------------
 
     function ClosedPipe(x, y, length, orientation, showArrow) {
@@ -1130,21 +1139,20 @@ function HammingCoderCanvas(canvasID) {
     Triangle.prototype.constructor = Triangle;
 
     Triangle.prototype.draw = function() {
-        if (this.orientation == Orientation.HORIZONTAL) {
-            let h = 5;
-            let origin = {x: this.x + this.length - this.size, y: this.y};
-
-            context.beginPath();
-            context.moveTo(origin.x, origin.y);
-            context.lineTo(origin.x, origin.y - h);
-            context.lineTo(origin.x + this.size, origin.y + BoxSize.SMALL / 2);
-            context.lineTo(origin.x, origin.y + BoxSize.SMALL + h);
-            context.lineTo(origin.x, origin.y + BoxSize.SMALL);
-            context.stroke();
-
-        } else {
-
+        if (this.orientation != Orientation.HORIZONTAL) {
+            return;
         }
+
+        let h = 5;
+        let origin = {x: this.x + this.length - this.size, y: this.y};
+
+        context.beginPath();
+        context.moveTo(origin.x, origin.y);
+        context.lineTo(origin.x, origin.y - h);
+        context.lineTo(origin.x + this.size, origin.y + BoxSize.SMALL / 2);
+        context.lineTo(origin.x, origin.y + BoxSize.SMALL + h);
+        context.lineTo(origin.x, origin.y + BoxSize.SMALL);
+        context.stroke();
     }
 
     Triangle.prototype.push = function() {
@@ -1338,7 +1346,7 @@ function HammingCoderCanvas(canvasID) {
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
-    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder");
+    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder", false);
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
@@ -1410,7 +1418,7 @@ function HammingCoderCanvas(canvasID) {
 
     var coderSize = {x:  boxsetLen - border * 3 + 15, y: boxsetLen - border * 3};
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize.y / 2};
-    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize.x, coderSize.y, "Hammingov\nkoder");
+    var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize.x, coderSize.y, "Hammingov\nkoder", true);
 
     var boxset1 = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
     boxset1.setInfo(["D3", "D5", "D6", "D7"], Direction.EAST);
@@ -1448,6 +1456,9 @@ function HammingCoderCanvas(canvasID) {
 
     var pos7 = {x: corrPos.x + corrSize.x - border, y: corrPos.y + corrSize.y / 2 - BoxSize.SMALL / 2};
     var pipe7 = new HalfOpenPipe(pos7.x, pos7.y, 125, Orientation.HORIZONTAL, Direction.EAST, true);
+
+    // temporary fix, I hope hope hope
+    var dummy = new OpenPipe(10000, 10000, 1, Orientation.HORIZONTAL, true);
 
     var preLastBoxset = new BinaryBoxset("preLastBoxset", corrPos.x + corrSize.x - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
     preLastBoxset.setInfo(["D3'", "D5'", "D6'", "D7'"], Direction.EAST, Font.LARGE);
