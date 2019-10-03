@@ -1031,6 +1031,7 @@ function HammingCoderCanvas(canvasID) {
 
         let triangle;
         this.reducedLength = this.length;
+        
         if (showArrow === true) {
             triangle = new Triangle(this.topLeft.x, this.topLeft.y, this.length, this.orientation);
             this.reducedLength -= triangle.size;
@@ -1132,27 +1133,37 @@ function HammingCoderCanvas(canvasID) {
         this.x = x;
         this.y = y;
         this.length = length;
-        this.orientation = Orientation.HORIZONTAL;
+        this.orientation = orientation;
         this.size = BoxSize.SMALL * 0.85;
     }
 
     Triangle.prototype.constructor = Triangle;
 
     Triangle.prototype.draw = function() {
-        if (this.orientation != Orientation.HORIZONTAL) {
-            return;
+        if (this.orientation == Orientation.HORIZONTAL) {
+            let h = 5;
+            let origin = {x: this.x + this.length - this.size, y: this.y};
+
+            context.beginPath();
+            context.moveTo(origin.x, origin.y);
+            context.lineTo(origin.x, origin.y - h);
+            context.lineTo(origin.x + this.size, origin.y + BoxSize.SMALL / 2);
+            context.lineTo(origin.x, origin.y + BoxSize.SMALL + h);
+            context.lineTo(origin.x, origin.y + BoxSize.SMALL);
+            context.stroke();
+
+        } else {
+            let h = 5;
+            let origin = {x: this.x, y: this.y + this.length - this.size};
+
+            context.beginPath();
+            context.moveTo(origin.x, origin.y);
+            context.lineTo(origin.x - h, origin.y);
+            context.lineTo(origin.x + BoxSize.SMALL / 2, origin.y + this.size);
+            context.lineTo(origin.x + BoxSize.SMALL + h, origin.y);
+            context.lineTo(origin.x + BoxSize.SMALL, origin.y);
+            context.stroke();
         }
-
-        let h = 5;
-        let origin = {x: this.x + this.length - this.size, y: this.y};
-
-        context.beginPath();
-        context.moveTo(origin.x, origin.y);
-        context.lineTo(origin.x, origin.y - h);
-        context.lineTo(origin.x + this.size, origin.y + BoxSize.SMALL / 2);
-        context.lineTo(origin.x, origin.y + BoxSize.SMALL + h);
-        context.lineTo(origin.x, origin.y + BoxSize.SMALL);
-        context.stroke();
     }
 
     Triangle.prototype.push = function() {
@@ -1383,7 +1394,7 @@ function HammingCoderCanvas(canvasID) {
 
     var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL}
     var errGenVertPipeLength = 25;
-    var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, errGenVertPipeLength, Orientation.VERTICAL, Direction.NORTH);
+    var pipe8 = new HalfOpenPipe(pos8.x, pos8.y, errGenVertPipeLength, Orientation.VERTICAL, Direction.NORTH, true);
 
     var genSize2 = {x: 375, y: 115};
     var genPos2 = {x: pos8.x - genSize2.x / 2 + BoxSize.SMALL / 2, y: pos8.y - border + pipe8.length};
