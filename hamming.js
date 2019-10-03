@@ -27,10 +27,15 @@ function HammingCoderCanvas(canvasID) {
     */
     var border = 1;
 
-    /*
-    The background color of the canvas.
-    */
-    var backgroundColor = "white";
+    /**
+     * Fill color for the boxes.
+     */
+    var fillColor = "#ffffff";
+
+    /**
+     * Fill color for the clickable boxes.
+     */
+    var clickColor = "#dbe9ff"
 
     var Font = {
         SMALL: "10px Calibri",
@@ -66,7 +71,7 @@ function HammingCoderCanvas(canvasID) {
     // ------------------------- Circuit Overlay -----------------------------------
 
     function drawLabel(x, y, w, h, label, direction) {
-        context.textAlign="center";
+        context.textAlign = "center";
         context.textBaseline = "middle";
         context.font = Font.LARGE;
         context.fillText(label, (x * 2 + w) / 2 + w * direction, (y * 2 + h) / 2);
@@ -77,7 +82,7 @@ function HammingCoderCanvas(canvasID) {
             drawLabel(x, y, w, h, label.name, label.dir);
         }
 
-        context.fillStyle = "white";
+        context.fillStyle = fillColor;
         context.fillRect(x - 0.5, y - 0.5, w, h);
     
         context.rect(x - 0.5, y - 0.5, w, h);
@@ -246,7 +251,7 @@ function HammingCoderCanvas(canvasID) {
     // ---------------------------------- TextBox ----------------------------------
 
     // A rectangular box with the specified text in the center.
-    function TextBox(x, y, width, height, text, font) {
+    function TextBox(x, y, width, height, text, font, isClickable) {
         objects.push(this);
 
         this.x = ~~x;
@@ -256,6 +261,7 @@ function HammingCoderCanvas(canvasID) {
         this.text = text;
         this.font = font;
         this.isText = isText(this.text);
+        this.isClickable = isClickable;
     }
 
     // Draws the textbox onto the canvas.
@@ -263,7 +269,7 @@ function HammingCoderCanvas(canvasID) {
         context.fillStyle = "black";
         context.fillRect(this.x, this.y, this.width, this.height);
 
-        context.fillStyle = "white";
+        context.fillStyle = this.isClickable ? clickColor : fillColor;
         context.fillRect(this.x + border, this.y + border, this.width - 2 * border, this.height - 2 * border);
 
         context.fillStyle = "black";
@@ -304,8 +310,8 @@ function HammingCoderCanvas(canvasID) {
     // -------------------------------- LargeTextBox --------------------------------
 
     // Creates a new BinaryBox at the given coordinates and of the given size.
-    function LargeTextBox(x, y, width, height, text) {
-        TextBox.call(this, x, y, width, height, text);
+    function LargeTextBox(x, y, width, height, text, isClickable) {
+        TextBox.call(this, x, y, width, height, text, undefined, isClickable);
 
         this.font = Font.LARGE;
     }
@@ -317,14 +323,16 @@ function HammingCoderCanvas(canvasID) {
     // --------------------------------- BinaryBox ---------------------------------
 
     // Creates a new BinaryBox at the given coordinates and of the given size.
-    function BinaryBox(x, y, size) {
+    function BinaryBox(x, y, size, isClickable) {
         this.size = size;
+        this.isClickable = isClickable;
+
 
         if (size == BoxSize.LARGE) {
-            LargeTextBox.call(this, x, y, size, size, "0");
+            LargeTextBox.call(this, x, y, size, size, "0", isClickable);
             
         } else {
-            TextBox.call(this, x, y, size, size, "0");
+            TextBox.call(this, x, y, size, size, "0", undefined, isClickable);
         }
     }
 
@@ -364,7 +372,7 @@ function HammingCoderCanvas(canvasID) {
             // After the loop, xMax and yMax will hold the "size" of the whole BinaryBoxset
             this.xMax = this.x + xOffset * i;
             this.yMax = this.y + yOffset * i;
-            this.boxes.push(new BinaryBox(this.xMax, this.yMax, size));
+            this.boxes.push(new BinaryBox(this.xMax, this.yMax, this.size, this.isClickable));
         }
     }
 
@@ -415,7 +423,7 @@ function HammingCoderCanvas(canvasID) {
         this.font = font;
     }
 
-    // Draws the informataion of this binary boxset.
+    // Draws the information of this binary boxset.
     BinaryBoxset.prototype.drawInfo = function() {
         context.fillStyle = "black";
         context.font = this.font != undefined ? this.font : Font.SMALL;
@@ -555,9 +563,9 @@ function HammingCoderCanvas(canvasID) {
         drawRect(230, 120, 30, 30, parityBits[2], {name: "c0", dir: Direction.EAST});
     }
 
-    // --------------------------------- SindromeGenerator ----------------------------------
+    // --------------------------------- SyndromeGenerator ----------------------------------
 
-    function SindromeGenerator(x, y, width, height, text) {
+    function SyndromeGenerator(x, y, width, height, text) {
         LargeTextBox.call(this, x, y, width, height, text);
 
         this.ioWidth = 20;
@@ -570,10 +578,10 @@ function HammingCoderCanvas(canvasID) {
         this.circuitHeight = this.origin.y + this.ioHeight * 10;
     }
 
-    SindromeGenerator.prototype = Object.create(LargeTextBox.prototype);
-    SindromeGenerator.prototype.constructor = SindromeGenerator;
+    SyndromeGenerator.prototype = Object.create(LargeTextBox.prototype);
+    SyndromeGenerator.prototype.constructor = SyndromeGenerator;
 
-    SindromeGenerator.prototype.drawCircuit = function() {
+    SyndromeGenerator.prototype.drawCircuit = function() {
         let ioWidth = this.ioWidth;
         let ioHeight = this.ioHeight;
         let gateSize = this.gateSize;
@@ -907,7 +915,7 @@ function HammingCoderCanvas(canvasID) {
         
         let inputs = ["s4", "s2", "s1"];
 
-        let sindromeBits = boxsets.get('sinGen').getBits();
+        let SyndromeBits = boxsets.get('sinGen').getBits();
         let dataBits = reverse(boxsets.get('decoderLower').getBits());
         let outputBits = reverse(boxsets.get('lastBoxset').getBits());
         
@@ -917,7 +925,7 @@ function HammingCoderCanvas(canvasID) {
             let xTopRight = lineOrigin + offset * 0.42 + offset * 0.13 * (3 - i);
             let xTopLeft = 0.1 * offset - offset * 0.15 * i; 
             
-            drawRect(pos.x, pos.y, ioWidth, ioHeight, sindromeBits[i], {name: inputs[i], dir: Direction.WEST});
+            drawRect(pos.x, pos.y, ioWidth, ioHeight, SyndromeBits[i], {name: inputs[i], dir: Direction.WEST});
             
             context.beginPath();
             context.moveTo(pos.x + ioWidth, pos.y + ioHeight / 2);
@@ -1067,7 +1075,7 @@ function HammingCoderCanvas(canvasID) {
     }
 
     OpenPipe.prototype.draw = function() {
-        context.fillStyle = "white";
+        context.fillStyle = fillColor;
         context.fillRect(this.coverupX, this.coverupY, this.coverupW, this.coverupH);
     }
 
@@ -1144,6 +1152,7 @@ function HammingCoderCanvas(canvasID) {
             let h = 5;
             let origin = {x: this.x + this.length - this.size, y: this.y};
 
+            context.fillStyle = "black";
             context.beginPath();
             context.moveTo(origin.x, origin.y);
             context.lineTo(origin.x, origin.y - h);
@@ -1156,6 +1165,7 @@ function HammingCoderCanvas(canvasID) {
             let h = 5;
             let origin = {x: this.x, y: this.y + this.length - this.size};
 
+            context.fillStyle = "black";
             context.beginPath();
             context.moveTo(origin.x, origin.y);
             context.lineTo(origin.x - h, origin.y);
@@ -1346,7 +1356,7 @@ function HammingCoderCanvas(canvasID) {
     var dummyBoxset = new BinaryBoxset("lastBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
     var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
-    firstBoxset.setInfo(["D0", "D1", "D2", "D3"], Direction.EAST, Font.LARGE);
+    firstBoxset.setInfo(["X0", "X1", "X2", "X3"], Direction.EAST, Font.LARGE);
 
     var pos1 = {x: BoxSize.LARGE, y: origin.y + 85};
     var pipe1 = new ClosedPipe(pos1.x, pos1.y, 175, Orientation.HORIZONTAL);
@@ -1365,7 +1375,7 @@ function HammingCoderCanvas(canvasID) {
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe3 = new OpenPipe(pos3.x, pos3.y, 273, Orientation.HORIZONTAL, true);
     pipe3.setBoxset(4, "encoderLower");
-    pipe3.boxset.setInfo(["D0", "D1", "D2", "D3"], Direction.NORTH);
+    pipe3.boxset.setInfo(["X0", "X1", "X2", "X3"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
     var pipe4 = new HalfOpenPipe(pos4.x, pos4.y, 135, Orientation.HORIZONTAL, Direction.EAST, true);
@@ -1449,12 +1459,12 @@ function HammingCoderCanvas(canvasID) {
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length / 2) / 2 - genSize.y / 2};
-    var gen = new SindromeGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
+    var gen = new SyndromeGenerator(genPos.x, genPos.y, genSize.x, genSize.y, "Generator\nsindroma");
 
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new HalfOpenPipe(pos5.x, pos5.y, 120, Orientation.HORIZONTAL, Direction.EAST, true);
     pipe5.setBoxset(3, "sinGen");
-    pipe5.boxset.setInfo(["S4", "S2", "S1"], Direction.NORTH);
+    pipe5.boxset.setInfo(["S1", "S2", "S4"], Direction.NORTH);
 
     var pos6 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe6 = new OpenPipe(pos6.x, pos6.y, pos5.x + pipe5.length - pos6.x, Orientation.HORIZONTAL, true);
@@ -1474,8 +1484,8 @@ function HammingCoderCanvas(canvasID) {
     var preLastBoxset = new BinaryBoxset("preLastBoxset", corrPos.x + corrSize.x - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
     preLastBoxset.setInfo(["D3'", "D5'", "D6'", "D7'"], Direction.EAST, Font.LARGE);
 
-    var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 86, 4, BoxSize.LARGE, Orientation.VERTICAL);
-    lastBoxset.setInfo(["D0", "D1", "D2", "D3"], Direction.EAST, Font.LARGE);
+    var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 86, 4, BoxSize.LARGE, Orientation.VERTICAL );
+    lastBoxset.setInfo(["X0", "X1", "X2", "X3"], Direction.EAST, Font.LARGE);
 
     redraw();
     
