@@ -597,23 +597,23 @@ function HammingCoderCanvas(canvasID) {
         
         // inputs 1
         let input1 = {x: origin.x, y: origin.y};
-        drawRect(input1.x, input1.y, ioWidth, ioHeight, parityBitsUpper[0], {name: "c4'", dir: Direction.WEST});
+        drawRect(input1.x, input1.y, ioWidth, ioHeight, parityBitsUpper[2], {name: "c4'", dir: Direction.WEST});
         
         let input2 = {x: origin.x, y: origin.y + ioHeight * 1.5};
         drawRect(input2.x, input2.y, ioWidth, ioHeight, parityBitsUpper[1], {name: "c2'", dir: Direction.WEST});
         
         let input3 = {x: origin.x, y: origin.y + ioHeight * 3};
-        drawRect(input3.x, input3.y, ioWidth, ioHeight, parityBitsUpper[2], {name: "c1'", dir: Direction.WEST});
+        drawRect(input3.x, input3.y, ioWidth, ioHeight, parityBitsUpper[0], {name: "c1'", dir: Direction.WEST});
         
         // inputs 2
         let input4 = {x: origin.x, y: origin.y + ioHeight * 6};
-        drawRect(input4.x, input4.y, ioWidth, ioHeight, parityBitsLower[0], {name: "c4", dir: Direction.WEST});
+        drawRect(input4.x, input4.y, ioWidth, ioHeight, parityBitsLower[2], {name: "c4", dir: Direction.WEST});
         
         let input5 = {x: origin.x, y: origin.y + ioHeight * 7.5};
         drawRect(input5.x, input5.y, ioWidth, ioHeight, parityBitsLower[1], {name: "c2", dir: Direction.WEST});
         
         let input6 = {x: origin.x, y: origin.y + ioHeight * 9};
-        drawRect(input6.x, input6.y, ioWidth, ioHeight, parityBitsLower[2], {name: "c1", dir: Direction.WEST});
+        drawRect(input6.x, input6.y, ioWidth, ioHeight, parityBitsLower[0], {name: "c1", dir: Direction.WEST});
         
         // gates
         let gate1 = {x: lineOrigin + offset, y: origin.y + ioHeight * 2 - gateSize / 2}
@@ -627,13 +627,13 @@ function HammingCoderCanvas(canvasID) {
         
         // outputs
         let output1 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 1.5}
-        drawRect(output1.x, output1.y, ioWidth, ioHeight, outputBits[0], {name: "s4", dir: Direction.EAST});
+        drawRect(output1.x, output1.y, ioWidth, ioHeight, outputBits[2], {name: "s4", dir: Direction.EAST});
         
         let output2 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 4.5}
         drawRect(output2.x, output2.y, ioWidth, ioHeight, outputBits[1], {name: "s2", dir: Direction.EAST});
         
         let output3 = {x: lineOrigin + gateSize + offset * 2, y: origin.y + ioHeight * 7.5}
-        drawRect(output3.x, output3.y, ioWidth, ioHeight, outputBits[2], {name: "s1", dir: Direction.EAST});
+        drawRect(output3.x, output3.y, ioWidth, ioHeight, outputBits[0], {name: "s1", dir: Direction.EAST});
         
         context.beginPath();
         context.moveTo(lineOrigin, origin.y + ioHeight / 2);
@@ -969,7 +969,7 @@ function HammingCoderCanvas(canvasID) {
             drawBox(xor.x, xor.y, xorSize, "=1");
 
             let out = {x: lineOrigin + xorSize + offset * 3.25, y: xorHeight + ioHeight / 2};
-            drawRect(out.x, out.y, ioWidth, ioHeight, outputBits[i], {name: outputs[i], dir: Direction.EAST});
+            drawRect(out.x, out.y, ioWidth, ioHeight, outputBits[3 - i], {name: outputs[i], dir: Direction.EAST});
             
             context.beginPath();
             context.moveTo(and.x + xorSize, and.y + xorSize / 2);
