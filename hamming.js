@@ -38,8 +38,8 @@ function HammingCoderCanvas(canvasID) {
     var clickColor = "#dbe9ff"
 
     var Font = {
-        SMALL: "10px Calibri",
-        LARGE: "15px Calibri"
+        SMALL: "10px serif",
+        LARGE: "13.5px serif"
     }
 
     var BoxSize = {
@@ -439,7 +439,7 @@ function HammingCoderCanvas(canvasID) {
                 y += this.location * boxSize.height * 0.8;
 
             } else {
-                x += this.location * boxSize.width * 0.8;
+                x += this.location * boxSize.width * 0.85;
             }
             
             context.fillText(this.info[i], x, y);
@@ -557,10 +557,10 @@ function HammingCoderCanvas(canvasID) {
         drawDot(50, 15);
 
         // draw outputs
-        let parityBits = boxsets.get(this.decoder ? 'decoderLower' : 'encoderUpper').getBits();
-        drawRect(230, 10, 30, 30, parityBits[0], {name: "c2", dir: Direction.EAST});
-        drawRect(230, 65, 30, 30, parityBits[1], {name: "c1", dir: Direction.EAST});
-        drawRect(230, 120, 30, 30, parityBits[2], {name: "c0", dir: Direction.EAST});
+        let parityBits = boxsets.get(this.decoder ? 'decoderUpper' : 'encoderUpper').getBits();
+        drawRect(230, 10, 30, 30, parityBits[2], {name: "c4", dir: Direction.EAST});
+        drawRect(230, 65, 30, 30, parityBits[1], {name: "c2", dir: Direction.EAST});
+        drawRect(230, 120, 30, 30, parityBits[0], {name: "c1", dir: Direction.EAST});
     }
 
     // --------------------------------- SyndromeGenerator ----------------------------------
@@ -728,8 +728,8 @@ function HammingCoderCanvas(canvasID) {
         let parityBits = boxsets.get('encoderUpper').getBits();
         let dataBits = boxsets.get('encoderLower').getBits();
         let inputBits = [
-            parityBits[0], parityBits[1], parityBits[2],
-            dataBits[0], dataBits[1], dataBits[2], dataBits[3]
+            parityBits[2], parityBits[1], parityBits[0],
+            dataBits[3], dataBits[2], dataBits[1], dataBits[0]
         ];
 
         let outputBits = boxsets.get('codeGenBoxset').getBits();
@@ -845,18 +845,18 @@ function HammingCoderCanvas(canvasID) {
             
         let lineOrigin = origin.x + ioWidth;
         
-        let labels = ["c1", "c2", "d3", "c4", "d5", "d6", "d7"];
+		let labels = ["d7", "d6", "d5", "c4", "d3", "c2", "c1"];
 
-        let inputBits = boxsets.get('errGenUpper').getBits();
-        let errorBits = boxsets.get('errGen').getBits();
-        let outputBits = boxsets.get('errGenLower').getBits();
+        let inputBits = reverse(boxsets.get('errGenUpper').getBits());
+        let errorBits = reverse(boxsets.get('errGen').getBits());
+        let outputBits = reverse(boxsets.get('errGenLower').getBits());
         
         for (let i = 0; i < 7; i++) {
             let heightUpper = origin.y + ioHeight * i * 3;
             let heightLower = heightUpper + ioHeight * 1.25;
             
             drawRect(origin.x, heightUpper, ioWidth, ioHeight, inputBits[i], {name: labels[i], dir: Direction.WEST});
-            drawRect(origin.x, heightLower, ioWidth, ioHeight, errorBits[i], {name: "g" + (i+1), dir: Direction.WEST});
+            drawRect(origin.x, heightLower, ioWidth, ioHeight, errorBits[i], {name: "g" + (7-i), dir: Direction.WEST});
             
             context.beginPath();
             context.moveTo(lineOrigin, heightUpper + ioHeight * 0.5);
@@ -1189,20 +1189,20 @@ function HammingCoderCanvas(canvasID) {
         let dataBits = firstBoxset.getBits();
         
         let encoderLower = boxsets.get('encoderLower');
-        encoderLower.setBits(dataBits);
+        encoderLower.setBits(reverse(dataBits));
 
         let encoderCoder = boxsets.get('encoderCoder');
         encoderCoder.setBits(dataBits);
 
-        let parityBits = calculateParityBitsFrom(dataBits);
+        let parityBits = calculateParityBitsFrom(reverse(dataBits));
 
         let encoderUpper = boxsets.get('encoderUpper');
         encoderUpper.setBits(parityBits);
 
-        let allBits = combineBits(dataBits, parityBits);
+        let allBits = combineBits(reverse(dataBits), parityBits);
 
         let codeGenBoxset = boxsets.get('codeGenBoxset');
-        codeGenBoxset.setBits(allBits);
+        codeGenBoxset.setBits(reverse(allBits));
 
         // error generator
 
@@ -1218,12 +1218,13 @@ function HammingCoderCanvas(canvasID) {
         errGenLower.setBits(propagatedBits);
 
         // decoder
+		
         let separatedBits = separateBits(propagatedBits);
         let newDataBits = separatedBits.dataBits;
         let newParityBits = separatedBits.parityBits;
 
         let decoderCoder = boxsets.get('decoderCoder');
-        decoderCoder.setBits(newDataBits);
+        decoderCoder.setBits(reverse(newDataBits));
 
         let decoderUpper = boxsets.get('decoderUpper');
         decoderUpper.setBits(calculateParityBitsFrom(newDataBits));
@@ -1243,10 +1244,10 @@ function HammingCoderCanvas(canvasID) {
         let dataBitsOut = separateBits(fixed).dataBits;
 
         let preLast = boxsets.get('preLastBoxset');
-        preLast.setBits(dataBitsOut);
+        preLast.setBits(reverse(dataBitsOut));
 
         let last = boxsets.get('lastBoxset');
-        last.setBits(dataBitsOut)
+        last.setBits(reverse(dataBitsOut));
     }
 
     function fixError(bits, index) {
@@ -1356,18 +1357,20 @@ function HammingCoderCanvas(canvasID) {
     var dummyBoxset = new BinaryBoxset("lastBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
     var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
-    firstBoxset.setInfo(["X0", "X1", "X2", "X3"], Direction.EAST, Font.LARGE);
+    firstBoxset.setInfo(["X3", "X2", "X1", "X0"], Direction.EAST, Font.LARGE);
 
     var pos1 = {x: BoxSize.LARGE, y: origin.y + 85};
     var pipe1 = new ClosedPipe(pos1.x, pos1.y, 175, Orientation.HORIZONTAL);
 
     var boxsetLen = BoxSize.SMALL * 4;
     var boxsetPos = {x: pos1.x + pipe1.length - border, y: pos1.y + BoxSize.SMALL / 2 - boxsetLen / 2 + border * 2};
-    var boxset1 = new BinaryBoxset("encoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
 
     var coderSize = boxsetLen - border * 3;
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize / 2};
     var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder", false);
+	
+	var boxsetEncoder = new BinaryBoxset("encoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+	//boxsetEncoder.setInfo(["D7", "D6", "D5", "D3"], Direction.EAST);
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
@@ -1441,8 +1444,8 @@ function HammingCoderCanvas(canvasID) {
     var coderPos = {x: pos1.x + pipe1.length - border + BoxSize.SMALL - border, y: pos1.y + BoxSize.SMALL / 2 - coderSize.y / 2};
     var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize.x, coderSize.y, "Hammingov\nkoder", true);
 
-    var boxset1 = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
-    boxset1.setInfo(["D3", "D5", "D6", "D7"], Direction.EAST);
+    var boxsetDecoder = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
+    boxsetDecoder.setInfo(["D7", "D6", "D5", "D3"], Direction.EAST);
 
     var pos2 = {x: pos1.x + 0.6 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 170, Orientation.VERTICAL, Direction.NORTH);
@@ -1482,10 +1485,10 @@ function HammingCoderCanvas(canvasID) {
     var dummy = new OpenPipe(10000, 10000, 1, Orientation.HORIZONTAL, true);
 
     var preLastBoxset = new BinaryBoxset("preLastBoxset", corrPos.x + corrSize.x - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
-    preLastBoxset.setInfo(["D3'", "D5'", "D6'", "D7'"], Direction.EAST, Font.LARGE);
+    preLastBoxset.setInfo(["D7'", "D6'", "D5'", "D3'"], Direction.EAST, Font.LARGE);
 
     var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 86, 4, BoxSize.LARGE, Orientation.VERTICAL );
-    lastBoxset.setInfo(["X0", "X1", "X2", "X3"], Direction.EAST, Font.LARGE);
+    lastBoxset.setInfo(["X3", "X2", "X1", "X0"], Direction.EAST, Font.LARGE);
 
     redraw();
     
