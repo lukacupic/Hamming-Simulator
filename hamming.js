@@ -1419,7 +1419,7 @@ function HammingCoderCanvas(canvasID) {
         y: (genPos2.y * 2 + genSize2.y) / 2 - BoxSize.SMALL / 2 + genSize2.y * 0.3
     };
     var genBoxset2 = new BinaryBoxset("errGen", genBoxsetPos2.x, genBoxsetPos2.y, 7, BoxSize.SMALL, Orientation.HORIZONTAL, true);
-    genBoxset2.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
+    genBoxset2.setInfo(["G1", "G2", "G3", "G4", "G5", "G6", "G7"], Direction.NORTH);
 
     var pos9 = {x: pos7.x, y: genPos2.y + genSize2.y - border};
     var pipe9 = new ClosedPipe(pos9.x, pos9.y, errGenVertPipeLength + BoxSize.SMALL - border, Orientation.VERTICAL);
