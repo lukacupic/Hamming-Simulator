@@ -1357,7 +1357,7 @@ function HammingCoderCanvas(canvasID) {
     var dummyBoxset = new BinaryBoxset("lastBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
 
     var firstBoxset = new BinaryBoxset("firstBoxset", origin.x, origin.y, 4, BoxSize.LARGE, Orientation.VERTICAL, true);
-    firstBoxset.setInfo(["X3", "X2", "X1", "X0"], Direction.EAST, Font.LARGE);
+    firstBoxset.setInfo(["x3", "x2", "x1", "x0"], Direction.EAST, Font.LARGE);
 
     var pos1 = {x: BoxSize.LARGE, y: origin.y + 85};
     var pipe1 = new ClosedPipe(pos1.x, pos1.y, 175, Orientation.HORIZONTAL);
@@ -1370,7 +1370,7 @@ function HammingCoderCanvas(canvasID) {
     var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize, coderSize, "Hammingov\nkoder", false);
 	
 	var boxsetEncoder = new BinaryBoxset("encoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
-	//boxsetEncoder.setInfo(["D7", "D6", "D5", "D3"], Direction.EAST);
+	//boxsetEncoder.setInfo(["d7", "d6", "d5", "d3"], Direction.EAST);
 
     var pos2 = {x: pos1.x + 0.75 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 85, Orientation.VERTICAL, Direction.NORTH);
@@ -1378,12 +1378,12 @@ function HammingCoderCanvas(canvasID) {
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe3 = new OpenPipe(pos3.x, pos3.y, 273, Orientation.HORIZONTAL, true);
     pipe3.setBoxset(4, "encoderLower");
-    pipe3.boxset.setInfo(["X0", "X1", "X2", "X3"], Direction.NORTH);
+    pipe3.boxset.setInfo(["x0", "x1", "x2", "x3"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize - border, y: pos1.y};
     var pipe4 = new HalfOpenPipe(pos4.x, pos4.y, 135, Orientation.HORIZONTAL, Direction.EAST, true);
     pipe4.setBoxset(3, "encoderUpper");
-    pipe4.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
+    pipe4.boxset.setInfo(["c1", "c2", "c4"], Direction.NORTH);
 
     var codeGenBoxsetLen = BoxSize.SMALL * 7;
     var genSize = {x: 100, y: codeGenBoxsetLen - border * 6};
@@ -1394,7 +1394,7 @@ function HammingCoderCanvas(canvasID) {
     var pipe5 = new ClosedPipe(pos5.x, pos5.y, 200, Orientation.HORIZONTAL);
 
     var codeGenBoxset = new BinaryBoxset("codeGenBoxset", genPos.x + genSize.x - 1, genPos.y, 7, BoxSize.SMALL, Orientation.VERTICAL);
-    codeGenBoxset.setInfo(["D7", "D6", "D5", "C4", "D3", "C2", "C1"], Direction.WEST);
+    codeGenBoxset.setInfo(["d7", "d6", "d5", "c4", "d3", "c2", "c1"], Direction.WEST);
 
     // error generator
     var pos6 = {x: pos5.x + pipe5.length - BoxSize.SMALL, y: pos5.y + BoxSize.SMALL};
@@ -1403,7 +1403,7 @@ function HammingCoderCanvas(canvasID) {
     var pos7 = {x: (pos1.x * 2 + pos6.x + BoxSize.SMALL - border) / 2, y: pos5.y + pipe6.length};
     var pipe7 = new HalfOpenPipe(pos7.x, pos7.y, pos6.x - pos7.x + border, Orientation.HORIZONTAL, Direction.EAST);
     pipe7.setBoxset(7, "errGenUpper");
-    pipe7.boxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
+    pipe7.boxset.setInfo(["c1", "c2", "d3", "c4", "d5", "d6", "d7"], Direction.NORTH);
 
     var pos8 = {x: pos7.x, y: pos7.y + BoxSize.SMALL}
     var errGenVertPipeLength = 25;
@@ -1419,7 +1419,7 @@ function HammingCoderCanvas(canvasID) {
         y: (genPos2.y * 2 + genSize2.y) / 2 - BoxSize.SMALL / 2 + genSize2.y * 0.3
     };
     var genBoxset2 = new BinaryBoxset("errGen", genBoxsetPos2.x, genBoxsetPos2.y, 7, BoxSize.SMALL, Orientation.HORIZONTAL, true);
-    genBoxset2.setInfo(["G1", "G2", "G3", "G4", "G5", "G6", "G7"], Direction.NORTH);
+    genBoxset2.setInfo(["g1", "g2", "g3", "g4", "g5", "g6", "g7"], Direction.NORTH);
 
     var pos9 = {x: pos7.x, y: genPos2.y + genSize2.y - border};
     var pipe9 = new ClosedPipe(pos9.x, pos9.y, errGenVertPipeLength + BoxSize.SMALL - border, Orientation.VERTICAL);
@@ -1428,7 +1428,7 @@ function HammingCoderCanvas(canvasID) {
     var pos10 = {x: pos9.x - errGenLowerPipeLength, y: pos9.y + errGenVertPipeLength - border};
     var pipe10 = new HalfOpenPipe(pos10.x, pos10.y, errGenLowerPipeLength + border, Orientation.HORIZONTAL, Direction.EAST);
     pipe10.setBoxset(7, "errGenLower");
-    pipe10.boxset.setInfo(["C1", "C2", "D3", "C4", "D5", "D6", "D7"], Direction.NORTH);
+    pipe10.boxset.setInfo(["c1", "c2", "d3", "c4", "d5", "d6", "d7"], Direction.NORTH);
 
     var pos11 = {x: pos10.x, y: pos10.y + BoxSize.SMALL}
     var pipe11 = new HalfOpenPipe(pos11.x, pos11.y, pipe6.length, Orientation.VERTICAL, Direction.NORTH);
@@ -1445,7 +1445,7 @@ function HammingCoderCanvas(canvasID) {
     var coder = new HammingCoder(coderPos.x, coderPos.y, coderSize.x, coderSize.y, "Hammingov\nkoder", true);
 
     var boxsetDecoder = new BinaryBoxset("decoderCoder", boxsetPos.x, boxsetPos.y, 4, BoxSize.SMALL, Orientation.VERTICAL);
-    boxsetDecoder.setInfo(["D7", "D6", "D5", "D3"], Direction.EAST);
+    boxsetDecoder.setInfo(["d7", "d6", "d5", "d3"], Direction.EAST);
 
     var pos2 = {x: pos1.x + 0.6 * pipe1.length, y: pos1.y + BoxSize.SMALL};
     var pipe2 = new HalfOpenPipe(pos2.x, pos2.y, 170, Orientation.VERTICAL, Direction.NORTH);
@@ -1453,12 +1453,12 @@ function HammingCoderCanvas(canvasID) {
     var pos3 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length / 2 - BoxSize.SMALL};
     var pipe3 = new OpenPipe(pos3.x, pos3.y, 276, Orientation.HORIZONTAL, true);
     pipe3.setBoxset(3, "decoderCentral");
-    pipe3.boxset.setInfo(["C1", "C2", "C4"], Direction.NORTH);
+    pipe3.boxset.setInfo(["c1", "c2", "c4"], Direction.NORTH);
 
     var pos4 = {x: coderPos.x + coderSize.x - border, y: pos1.y};
     var pipe4 = new HalfOpenPipe(pos4.x, pos4.y, 120, Orientation.HORIZONTAL, Direction.EAST, true);
     pipe4.setBoxset(3, "decoderUpper");
-    pipe4.boxset.setInfo(["C1'", "C2'", "C4'"], Direction.NORTH);
+    pipe4.boxset.setInfo(["c1'", "c2'", "c4'"], Direction.NORTH);
 
     var genSize = {x: 75, y: 150};
     var genPos = {x: pos4.x + pipe4.length - border, y: (pos1.y * 2 + BoxSize.SMALL + pipe2.length / 2) / 2 - genSize.y / 2};
@@ -1467,12 +1467,12 @@ function HammingCoderCanvas(canvasID) {
     var pos5 = {x: genPos.x + genSize.x - border, y: genPos.y + genSize.y / 2 - BoxSize.SMALL / 2};
     var pipe5 = new HalfOpenPipe(pos5.x, pos5.y, 120, Orientation.HORIZONTAL, Direction.EAST, true);
     pipe5.setBoxset(3, "sinGen");
-    pipe5.boxset.setInfo(["S1", "S2", "S4"], Direction.NORTH);
+    pipe5.boxset.setInfo(["s1", "s2", "s4"], Direction.NORTH);
 
     var pos6 = {x: pos2.x + BoxSize.SMALL, y: pos2.y + pipe2.length - BoxSize.SMALL};
     var pipe6 = new OpenPipe(pos6.x, pos6.y, pos5.x + pipe5.length - pos6.x, Orientation.HORIZONTAL, true);
     pipe6.setBoxset(4, "decoderLower");
-    pipe6.boxset.setInfo(["D3", "D5", "D6", "D7"], Direction.NORTH);
+    pipe6.boxset.setInfo(["d3", "d5", "d6", "d7"], Direction.NORTH);
 
     var corrSize = {x: 80, y: 200};
     var corrPos = {x: pos6.x + pipe6.length, y: (pos5.y + pos6.y) / 2 - corrSize.y / 2 + BoxSize.SMALL / 2};
@@ -1485,10 +1485,10 @@ function HammingCoderCanvas(canvasID) {
     var dummy = new OpenPipe(10000, 10000, 1, Orientation.HORIZONTAL, true);
 
     var preLastBoxset = new BinaryBoxset("preLastBoxset", corrPos.x + corrSize.x - border, pos7.y - 85, 4, BoxSize.LARGE, Orientation.VERTICAL);
-    preLastBoxset.setInfo(["D7'", "D6'", "D5'", "D3'"], Direction.EAST, Font.LARGE);
+    preLastBoxset.setInfo(["d7'", "d6'", "d5'", "d3'"], Direction.EAST, Font.LARGE);
 
     var lastBoxset = new BinaryBoxset("lastBoxset", pos7.x + pipe7.length - border, pos7.y - 86, 4, BoxSize.LARGE, Orientation.VERTICAL );
-    lastBoxset.setInfo(["X3", "X2", "X1", "X0"], Direction.EAST, Font.LARGE);
+    lastBoxset.setInfo(["x3", "x2", "x1", "x0"], Direction.EAST, Font.LARGE);
 
     redraw();
     
