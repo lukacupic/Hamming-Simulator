@@ -468,11 +468,15 @@ function HammingCoderCanvas(canvasID) {
 
         let dataBits = boxsets.get(this.decoder ? 'decoderCoder' : 'encoderCoder').getBits();
 
+        let encoderLables = ["x3", "x2", "x1", "x0"];
+        let decoderLables = ["d7", "d6", "d5", "d3"];
+        let labels = this.decoder ? decoderLables : encoderLables;
+
         // draw inputs
-        drawRect(0, 0, 30, 30, dataBits[0], {name: "d3", dir: Direction.WEST});
-        drawRect(0, 40, 30, 30, dataBits[1], {name: "d2", dir: Direction.WEST});
-        drawRect(0, 80, 30, 30, dataBits[2], {name: "d1", dir: Direction.WEST});
-        drawRect(0, 120, 30, 30, dataBits[3], {name: "d0", dir: Direction.WEST});
+        drawRect(0, 0, 30, 30, dataBits[0], {name: labels[0], dir: Direction.WEST});
+        drawRect(0, 40, 30, 30, dataBits[1], {name: labels[1], dir: Direction.WEST});
+        drawRect(0, 80, 30, 30, dataBits[2], {name: labels[2], dir: Direction.WEST});
+        drawRect(0, 120, 30, 30, dataBits[3], {name: labels[3], dir: Direction.WEST});
 
         // draw gates
         drawBox(150, 5, 40, "=1", false);
@@ -557,10 +561,15 @@ function HammingCoderCanvas(canvasID) {
         drawDot(50, 15);
 
         // draw outputs
+
+        let encoderLablesOut = ["c4", "c2", "c1"];
+        let decoderLablesOut = ["c4'", "c2'", "c1'"];
+        let labelsOut = this.decoder ? decoderLablesOut : encoderLablesOut;
+
         let parityBits = boxsets.get(this.decoder ? 'decoderUpper' : 'encoderUpper').getBits();
-        drawRect(230, 10, 30, 30, parityBits[2], {name: "c4", dir: Direction.EAST});
-        drawRect(230, 65, 30, 30, parityBits[1], {name: "c2", dir: Direction.EAST});
-        drawRect(230, 120, 30, 30, parityBits[0], {name: "c1", dir: Direction.EAST});
+        drawRect(230, 10, 30, 30, parityBits[2], {name: labelsOut[0], dir: Direction.EAST});
+        drawRect(230, 65, 30, 30, parityBits[1], {name: labelsOut[1], dir: Direction.EAST});
+        drawRect(230, 120, 30, 30, parityBits[0], {name: labelsOut[2], dir: Direction.EAST});
     }
 
     // --------------------------------- SyndromeGenerator ----------------------------------
@@ -925,7 +934,7 @@ function HammingCoderCanvas(canvasID) {
             let xTopRight = lineOrigin + offset * 0.42 + offset * 0.13 * (3 - i);
             let xTopLeft = 0.1 * offset - offset * 0.15 * i; 
             
-            drawRect(pos.x, pos.y, ioWidth, ioHeight, SyndromeBits[i], {name: inputs[i], dir: Direction.WEST});
+            drawRect(pos.x, pos.y, ioWidth, ioHeight, SyndromeBits[2 - i], {name: inputs[i], dir: Direction.WEST});
             
             context.beginPath();
             context.moveTo(pos.x + ioWidth, pos.y + ioHeight / 2);
