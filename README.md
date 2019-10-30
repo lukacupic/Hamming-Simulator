@@ -1,5 +1,5 @@
 # Hamming-Simulator
-A web simulator of data transmission using the Hamming code for error detection and correction.
+A web simulator of data transmission using the Hamming code for error detection and correction. <br>
 The only supported language so far is Croatian; English will be added in the foreseeable future.
 
 <p align="center">
