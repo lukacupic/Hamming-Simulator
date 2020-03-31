@@ -4,6 +4,4 @@ The only supported language so far is Croatian; English will be added in the for
 
 [Live demo](https://ferko.fer.hr/diglog-demo/hammingov-kod/hamming/index.html)
 
-<p align="center">
-  <img src="https://i.imgur.com/WC30Bpo.png" alt="Couldn't load image."/>
-</p>
+![alt text](https://i.imgur.com/WC30Bpo.png)
